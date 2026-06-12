@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.env
+data/raw/
+data/processed/*
+!data/processed/dashboard.html
+!data/processed/simulacion_interactiva.html
+*.bak
+*.zip
+.venv/
+logs/
+__MACOSX/
+.claude/
