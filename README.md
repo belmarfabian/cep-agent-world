@@ -8,7 +8,19 @@ Mundo simulado de agentes basado en la Encuesta CEP (Chile). Construye una pobla
 
 ## Demo
 
-El dashboard interactivo está en [`data/processed/simulacion_interactiva.html`](data/processed/simulacion_interactiva.html) — se abre directamente en el navegador, sin servidor. Permite elegir tema, ajustar tolerancia (ε) e influencia (μ), y ver la transición de la red social a la distribución de opiniones agente por agente.
+El dashboard interactivo está en [`data/processed/simulacion_interactiva.html`](data/processed/simulacion_interactiva.html) — se abre directamente en el navegador, sin servidor. Los 1.217 encuestados aparecen sobre un mapa de Chile (rotado, norte a la izquierda) en su región de residencia; al iniciar, toman posición sobre el tema elegido y migran a dos polos de opinión mientras interactúan. Al final se compara la distribución simulada con el margen oficial CEP de la misma pregunta.
+
+## Método
+
+1. **Población sintética.** Cada agente corresponde a un encuestado real de la CEP N°95: edad, sexo, región, NSE (GSE), educación, religión, autoubicación política (escala 1–10) e interés en política.
+2. **Opinión inicial.** Para cada tema, la opinión del agente (−1 a +1) se deriva de su autoubicación política, más ruido aleatorio que representa la variabilidad individual por tema.
+3. **Red social.** Los agentes se conectan en una red de mundo pequeño (Watts-Strogatz, k=6, p=0.12): la mayoría de los lazos une a personas cercanas y unos pocos atajos cruzan el país.
+4. **Dinámica de confianza acotada** (Deffuant-Weisbuch). En cada paso, pares conectados comparan opiniones y solo se influencian si distan menos que la tolerancia ε (0.40 por defecto). El ajuste μ (0.35) se pondera por:
+   - **homofilia**: similitud de región, edad y NSE entre los dos agentes;
+   - **apertura al cambio**: mayor en jóvenes y universitarios, menor en mayores y muy interesados en política.
+5. **Validación.** Tras 60 pasos, la distribución agregada se compara con el margen oficial publicado por el CEP para la misma pregunta.
+
+Los agentes LLM (`SIMULATION_TYPE=llm` o `hybrid`) reemplazan la regla de actualización numérica por conversaciones generadas con la API de Anthropic, donde cada agente argumenta desde su perfil sociodemográfico.
 
 ## Estructura
 

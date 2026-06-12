@@ -592,7 +592,9 @@ draw();
 </body>
 </html>"""
 
-output = Path("data/processed/simulacion_interactiva.html")
+# Version base (oscura, 120 agentes). La version publicada con mapa de Chile
+# es data/processed/simulacion_interactiva.html — no sobrescribirla.
+output = Path("data/processed/simulacion_interactiva_base.html")
 output.write_text(html, encoding="utf-8")
 print(f"HTML: {output.resolve()} ({output.stat().st_size/1024:.0f} KB)")
 
