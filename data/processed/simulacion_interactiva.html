@@ -738,7 +738,7 @@ function drawVotoDemo(t){const cv=document.getElementById('demoVoto');if(!cv||!c
 // --- proyeccion de voto ---
 const CAND=[{n:'Artes',p:-1.0,c:'#8b0000'},{n:'Jara',p:-0.7,c:'#d62728'},{n:'Enriquez-Ominami',p:-0.4,c:'#ff7f0e'},{n:'Mayne-Nicholls',p:-0.05,c:'#7f7f7f'},{n:'Parisi',p:0.1,c:'#ffc107'},{n:'Matthei',p:0.45,c:'#9467bd'},{n:'Kast',p:0.8,c:'#003f5c'},{n:'Kaiser',p:1.0,c:'#2ca02c'}];
 let VOTO=[],votoBalls=[],votoGeo=null,votoFrame=0,votoRaf=null;
-const VRATE=Math.max(8,N/80),VDUR=18,VGRID=7;
+const VRATE=Math.max(6,N/120),VDUR=34,VGRID=7;
 function votoInit(){
   const cvv=document.getElementById('vmap');if(!cvv||!cvv.clientWidth)return;
   const W=cvv.clientWidth,H=cvv.clientHeight,padX=70,r=VGRID/2-0.4;
@@ -771,7 +771,7 @@ function drawVoto(){
   for(const b of votoBalls){
     const p=Math.max(0,Math.min(1,(votoFrame-b.order/VRATE)/VDUR));if(p<=0)continue;
     const e=p<0.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
-    x.beginPath();x.arc(b.sx+(b.tx-b.sx)*e,ay+(b.ty-ay)*e,g.r,0,7);x.fillStyle=b.c;x.fill()
+    x.beginPath();x.arc(b.sx+(b.tx-b.sx)*e,6+(b.ty-6)*e,g.r,0,7);x.fillStyle=b.c;x.fill()
   }
   for(const v of VOTO){const cxp=g.fx(v.p);
     x.save();x.translate(cxp,bl+16);x.rotate(-0.32);x.textAlign='right';x.fillStyle='#555';x.font='600 11px Segoe UI';x.fillText(v.n,0,0);x.restore();
