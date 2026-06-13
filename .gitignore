@@ -5,6 +5,7 @@ data/raw/
 data/processed/*
 !data/processed/dashboard.html
 !data/processed/simulacion_interactiva.html
+!data/processed/conversations.js
 *.bak
 *.zip
 .venv/

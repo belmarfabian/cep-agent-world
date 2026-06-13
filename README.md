@@ -8,9 +8,25 @@ Mundo simulado de agentes basado en la Encuesta CEP (Chile). Construye una pobla
 
 ## Demo
 
-El dashboard interactivo está en [`data/processed/simulacion_interactiva.html`](data/processed/simulacion_interactiva.html) — se abre directamente en el navegador, sin servidor. Los 1.217 encuestados aparecen sobre un mapa de Chile (rotado, norte a la izquierda) en su región de residencia; al iniciar, toman posición sobre el tema elegido y migran a dos polos de opinión mientras interactúan. La simulación corre hasta que las opiniones se estabilizan (nadie cambia de grupo durante varias rondas) y entonces compara la distribución simulada con el margen oficial CEP de la misma pregunta.
+El dashboard interactivo está en [`data/processed/simulacion_interactiva.html`](data/processed/simulacion_interactiva.html) — se abre directamente en el navegador, sin servidor. Al abrirlo, un selector ofrece **dos modelos**, cada uno con su descripción:
 
-El botón **Benchmark** barre una grilla de tolerancia (ε) × influencia (μ), corre la simulación completa para cada combinación y cada pregunta con dato oficial, y muestra un mapa de calor del error medio: con eso se identifica **bajo qué condiciones las propiedades estadísticas de la simulación reproducen las de la encuesta**. Sin esa calibración, el modelo describe mecanismos de influencia social pero no sirve como predictor. Un clic en una celda aplica esos parámetros a la simulación visible; también se pueden ajustar con los controles del encabezado.
+### Modelo simple · Influencia social (ABM)
+
+Los 1.217 encuestados aparecen sobre un mapa de Chile (rotado, norte a la izquierda) en su región de residencia; al iniciar, toman posición sobre el tema elegido y migran a dos polos de opinión mientras interactúan. Cada persona es una opinión numérica que se acerca a la de un vecino solo si ya piensan parecido (confianza acotada). La simulación corre hasta que las opiniones se estabilizan y entonces compara la distribución simulada con el margen oficial CEP de la misma pregunta.
+
+El botón **Benchmark** barre una grilla de tolerancia (ε) × influencia (μ), corre la simulación completa para cada combinación y cada pregunta con dato oficial, y muestra un mapa de calor del error medio: con eso se identifica **bajo qué condiciones las propiedades estadísticas de la simulación reproducen las de la encuesta**. Sin esa calibración, el modelo describe mecanismos de influencia social pero no sirve como predictor. Un clic en una celda aplica esos parámetros; también se ajustan con los controles del encabezado.
+
+### Modelo mundo · Agentes que conversan (LLM)
+
+Cada agente es una persona-IA con la personalidad de un encuestado real (edad, región, NSE, posición política → *system prompt*); los agentes conversan en español chileno y reportan cómo cambió su opinión. El dashboard reproduce conversaciones entre pares reales de la encuesta, resaltados en el mapa. Como un HTML estático no puede llamar a un modelo en vivo, los diálogos vienen pre-generados:
+
+```bash
+python scripts/bake_conversations.py              # Groq (capa gratuita) por defecto
+python scripts/bake_conversations.py --provider gemini
+python scripts/bake_conversations.py --provider anthropic --model claude-haiku-4-5
+```
+
+El script construye los *system prompts* reales, corre las conversaciones y reescribe [`data/processed/conversations.js`](data/processed/conversations.js). Mientras no se regeneren, se muestran diálogos de ejemplo escritos a partir de los perfiles reales (etiquetados como tales en la propia vista).
 
 ## Método
 
