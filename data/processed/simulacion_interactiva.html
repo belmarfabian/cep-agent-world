@@ -736,7 +736,7 @@ function drawVotoDemo(t){const cv=document.getElementById('demoVoto');if(!cv||!c
   x.fillStyle='#bbb';x.font='500 9px Segoe UI';x.textAlign='center';x.fillText('reparte el voto por candidato',w/2,h-6)}
 
 // --- proyeccion de voto ---
-const CAND=[{n:'Artes',p:-1.0,c:'#8b0000'},{n:'Jara',p:-0.7,c:'#d62728'},{n:'Enriquez-Ominami',p:-0.4,c:'#ff7f0e'},{n:'Mayne-Nicholls',p:-0.05,c:'#7f7f7f'},{n:'Parisi',p:0.1,c:'#ffc107'},{n:'Matthei',p:0.45,c:'#9467bd'},{n:'Kast',p:0.8,c:'#003f5c'},{n:'Kaiser',p:1.0,c:'#2ca02c'}];
+const CAND=[{n:'Artes',p:-1.0,c:'#8b0000',r:0.67},{n:'Jara',p:-0.7,c:'#d62728',r:26.8},{n:'Enriquez-Ominami',p:-0.4,c:'#ff7f0e',r:1.2},{n:'Mayne-Nicholls',p:-0.05,c:'#7f7f7f',r:1.26},{n:'Parisi',p:0.1,c:'#ffc107',r:19.4},{n:'Matthei',p:0.45,c:'#9467bd',r:12.5},{n:'Kast',p:0.8,c:'#003f5c',r:24.0},{n:'Kaiser',p:1.0,c:'#2ca02c',r:13.93}];
 let VOTO=[],votoGeo=null,votoFrame=0,votoRaf=null;
 const GROUPS=[
  {n:'Izquierda',c:'#b03a3a',t:b=>b<=-0.5},
@@ -752,50 +752,45 @@ function votoInit(){
   const cnt=new Array(CAND.length).fill(0),gtot=new Array(GROUPS.length).fill(0);
   const flow=GROUPS.map(()=>new Array(CAND.length).fill(0));
   for(let i=0;i<N;i++){const b=D.a[i].b;let bi=0,bd=9;for(let k=0;k<CAND.length;k++){const dd=Math.abs(b-CAND[k].p);if(dd<bd){bd=dd;bi=k}}cnt[bi]++;const s=grpOf(b);flow[s][bi]++;gtot[s]++}
-  VOTO=CAND.map((c,k)=>({n:c.n,c:c.c,cnt:cnt[k],pct:cnt[k]/N*100}));
-  votoGeo={W,H,flow,gtot,cnt};
+  const sumr=CAND.reduce((a,c)=>a+c.r,0),realc=CAND.map(c=>c.r/sumr*N);
+  VOTO=CAND.map((c,k)=>({n:c.n,c:c.c,cnt:cnt[k]}));
+  votoGeo={W,H,flow,gtot,cnt,realc};
   votoFrame=0;if(votoRaf)cancelAnimationFrame(votoRaf);votoRaf=requestAnimationFrame(votoLoop)
 }
-function votoLoop(){votoFrame++;drawVoto();if(votoFrame>70){votoRaf=null;return}votoRaf=requestAnimationFrame(votoLoop)}
+function votoLoop(){votoFrame++;drawVoto();if(votoFrame>72){votoRaf=null;return}votoRaf=requestAnimationFrame(votoLoop)}
 function drawVoto(){
   const cvv=document.getElementById('vmap');if(!cvv||!votoGeo||!cvv.clientWidth)return;
   const x=cvv.getContext('2d'),dpr=devicePixelRatio,g=votoGeo,W=g.W,H=g.H;
   cvv.width=W*dpr;cvv.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
-  const prog=Math.min(1,votoFrame/50);
-  const leftM=170,rightM=180,nw=18,gap=10,top=64,bot=H-24,availH=bot-top;
-  const Lx=leftM,Rx=W-rightM,x0=Lx+nw,x1=Rx,cx=(x0+x1)/2;
-  const scale=(availH-(CAND.length-1)*gap)/N;
-  const Ly=[],Lh=[];let yy=top;
-  for(let s=0;s<GROUPS.length;s++){const h=g.gtot[s]*scale;Ly.push(yy);Lh.push(h);yy+=h+gap}
-  const Ry=[],Rh=[];yy=top;
-  for(let k=0;k<CAND.length;k++){const h=g.cnt[k]*scale;Ry.push(yy);Rh.push(h);yy+=h+gap}
+  const leftM=160,rightM=200,nw=15,gap=9,top=72,bot=H-26,availH=bot-top;
+  const Ax=leftM,Cx=W-rightM,Bx=(Ax+Cx)/2,scale=(availH-7*gap)/N;
+  const stack=v=>{const ys=[],hs=[];let yy=top;for(const t of v){const h=t*scale;ys.push(yy);hs.push(h);yy+=h+gap}return[ys,hs]};
+  const A=stack(g.gtot),B=stack(g.cnt),C=stack(g.realc),Ay=A[0],Ah=A[1],By=B[0],Bh=B[1],Cy=C[0],Ch=C[1];
+  const prog=Math.min(1,votoFrame/58);
+  const band=(x0,x1,s0,s1,t0,t1,col,al)=>{const cx=(x0+x1)/2;x.beginPath();x.moveTo(x0,s0);x.bezierCurveTo(cx,s0,cx,t0,x1,t0);x.lineTo(x1,t1);x.bezierCurveTo(cx,t1,cx,s1,x0,s1);x.closePath();x.globalAlpha=al;x.fillStyle=col;x.fill();x.globalAlpha=1};
   // titulos
-  x.fillStyle='#333';x.font='700 13px Segoe UI';x.textAlign='left';x.fillText('Autoubicacion ideologica',24,34);
-  x.textAlign='right';x.fillText('Candidato presidencial 2025',W-24,34);
-  // cintas (con revelado izquierda->derecha)
-  const Lcur=Ly.slice(),Rcur=Ry.slice();
-  x.save();x.beginPath();x.rect(0,0,x0+prog*(x1-x0)+1,H);x.clip();
-  for(let s=0;s<GROUPS.length;s++)for(let k=0;k<CAND.length;k++){
-    const f=g.flow[s][k];if(!f)continue;
-    const h=f*scale,s0=Lcur[s],s1=s0+h,t0=Rcur[k],t1=t0+h;Lcur[s]=s1;Rcur[k]=t1;
-    x.beginPath();x.moveTo(x0,s0);x.bezierCurveTo(cx,s0,cx,t0,x1,t0);
-    x.lineTo(x1,t1);x.bezierCurveTo(cx,t1,cx,s1,x0,s1);x.closePath();
-    x.fillStyle=CAND[k].c;x.globalAlpha=0.42;x.fill()
-  }
+  x.fillStyle='#333';x.font='700 13px Segoe UI';
+  x.textAlign='left';x.fillText('1. Encuesta CEP',Ax-nw,50);
+  x.textAlign='center';x.fillText('2. Si votaran por cercania',Bx+nw/2,50);
+  x.textAlign='right';x.fillText('3. Resultado real 1a vuelta',Cx+nw,50);
+  // cintas con revelado izquierda->derecha
+  x.save();x.beginPath();x.rect(0,0,prog*W+1,H);x.clip();
+  const Lc=Ay.slice(),Rc=By.slice();
+  for(let s=0;s<GROUPS.length;s++)for(let k=0;k<CAND.length;k++){const f=g.flow[s][k];if(!f)continue;const h=f*scale;band(Ax+nw,Bx,Lc[s],Lc[s]+h,Rc[k],Rc[k]+h,CAND[k].c,0.4);Lc[s]+=h;Rc[k]+=h}
+  for(let k=0;k<CAND.length;k++)band(Bx+nw,Cx,By[k],By[k]+Bh[k],Cy[k],Cy[k]+Ch[k],CAND[k].c,0.5);
   x.restore();x.globalAlpha=1;
   // nodos izquierda
-  for(let s=0;s<GROUPS.length;s++){
-    x.fillStyle=GROUPS[s].c;x.fillRect(Lx,Ly[s],nw,Math.max(1,Lh[s]));
-    x.fillStyle='#333';x.font='600 12px Segoe UI';x.textAlign='right';x.fillText(GROUPS[s].n,Lx-10,Ly[s]+Lh[s]/2+1);
-    x.fillStyle='#999';x.font='600 11px Segoe UI';x.fillText(Math.round(g.gtot[s]/N*100)+'%',Lx-10,Ly[s]+Lh[s]/2+15)
-  }
+  for(let s=0;s<GROUPS.length;s++){x.fillStyle=GROUPS[s].c;x.fillRect(Ax,Ay[s],nw,Math.max(1,Ah[s]));
+    x.fillStyle='#333';x.font='600 11px Segoe UI';x.textAlign='right';x.fillText(GROUPS[s].n,Ax-9,Ay[s]+Ah[s]/2+1);
+    x.fillStyle='#999';x.font='600 10px Segoe UI';x.fillText(Math.round(g.gtot[s]/N*100)+'%',Ax-9,Ay[s]+Ah[s]/2+14)}
+  // nodos centro (con % si caben)
+  for(let k=0;k<CAND.length;k++){x.fillStyle=CAND[k].c;x.fillRect(Bx,By[k],nw,Math.max(1,Bh[k]));
+    if(Bh[k]>16){x.fillStyle='#888';x.font='600 9px Segoe UI';x.textAlign='center';x.fillText(Math.round(g.cnt[k]/N*100)+'%',Bx+nw/2,By[k]-3)}}
   // nodos derecha
-  for(let k=0;k<CAND.length;k++){
-    x.fillStyle=CAND[k].c;x.fillRect(Rx,Ry[k],nw,Math.max(1,Rh[k]));
-    x.fillStyle='#333';x.font='600 12px Segoe UI';x.textAlign='left';x.fillText(CAND[k].n,Rx+nw+10,Ry[k]+Rh[k]/2+1);
-    x.fillStyle=CAND[k].c;x.font='700 11px Segoe UI';x.fillText(Math.round(g.cnt[k]/N*100)+'%',Rx+nw+10,Ry[k]+Rh[k]/2+15)
-  }
-  x.fillStyle='#aaa';x.font='500 11px Segoe UI';x.textAlign='center';x.fillText('Flujo de cada segmento ideologico al candidato mas cercano (grosor = personas)',W/2,H-6)
+  for(let k=0;k<CAND.length;k++){x.fillStyle=CAND[k].c;x.fillRect(Cx,Cy[k],nw,Math.max(1,Ch[k]));
+    x.fillStyle='#333';x.font='600 11px Segoe UI';x.textAlign='left';x.fillText(CAND[k].n,Cx+nw+9,Cy[k]+Ch[k]/2+1);
+    x.fillStyle=CAND[k].c;x.font='700 10px Segoe UI';x.fillText(CAND[k].r.toFixed(1)+'%',Cx+nw+9,Cy[k]+Ch[k]/2+14)}
+  x.fillStyle='#aaa';x.font='500 11px Segoe UI';x.textAlign='center';x.fillText('La cercania ideologica sobreestima al centro; el resultado real (1a vuelta nov-2025) se reparte distinto',W/2,H-6)
 }
 window.addEventListener('resize',()=>{if(MODE==='voto')votoInit()});
 
