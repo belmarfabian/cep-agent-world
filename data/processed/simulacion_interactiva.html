@@ -768,10 +768,13 @@ function drawVoto(){
   x.fillStyle='#003f5c';x.font='600 11px Segoe UI';x.textAlign='left';x.fillText('Izquierda',g.padX,ay-6);
   x.fillStyle='#d62728';x.textAlign='right';x.fillText('Derecha',W-g.padX,ay-6);
   x.strokeStyle='#eee';x.lineWidth=1;x.beginPath();x.moveTo(g.padX,bl+1);x.lineTo(W-g.padX,bl+1);x.stroke();
+  const fnx=W/2,fny=4;
+  x.strokeStyle='#cfd2da';x.lineWidth=2;x.beginPath();x.moveTo(fnx-24,fny);x.lineTo(fnx-6,fny+16);x.lineTo(fnx-6,fny+22);x.moveTo(fnx+24,fny);x.lineTo(fnx+6,fny+16);x.lineTo(fnx+6,fny+22);x.stroke();
   for(const b of votoBalls){
     const p=Math.max(0,Math.min(1,(votoFrame-b.order/VRATE)/VDUR));if(p<=0)continue;
     const e=p<0.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
-    x.beginPath();x.arc(b.sx+(b.tx-b.sx)*e,6+(b.ty-6)*e,g.r,0,7);x.fillStyle=b.c;x.fill()
+    const yc=fny+18+(b.ty-fny-18)*e;
+    x.beginPath();x.arc(fnx+(b.tx-fnx)*e,yc,g.r,0,7);x.fillStyle=b.c;x.fill()
   }
   for(const v of VOTO){const cxp=g.fx(v.p);
     x.save();x.translate(cxp,bl+16);x.rotate(-0.32);x.textAlign='right';x.fillStyle='#555';x.font='600 11px Segoe UI';x.fillText(v.n,0,0);x.restore();
