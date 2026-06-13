@@ -746,12 +746,14 @@ function votoInit(){
   const cnt=new Array(CAND.length).fill(0),assign=new Int16Array(N);
   for(let i=0;i<N;i++){const b=D.a[i].b;let bi=0,bd=9;for(let k=0;k<CAND.length;k++){const dd=Math.abs(b-CAND[k].p);if(dd<bd){bd=dd;bi=k}}assign[i]=bi;cnt[bi]++}
   const nC=CAND.length,colX=k=>padX+(W-2*padX)*(k+0.5)/nC;
-  const per=CAND.map((c,k)=>Math.max(6,Math.min(30,Math.round(Math.sqrt(cnt[k])*1.6))));
+  const baseline=H-86,fny=8,sy=fny+22;
+  const maxCnt=Math.max.apply(null,cnt);
+  const perRow=Math.max(6,Math.ceil(maxCnt/((baseline-sy-10)/VGRID)));
   VOTO=CAND.map((c,k)=>({n:c.n,c:c.c,cx:colX(k),cnt:cnt[k],pct:cnt[k]/N*100}));
-  const baseline=H-86,fny=8,sy=fny+22,counter=new Array(nC).fill(0);
+  const counter=new Array(nC).fill(0);
   votoBalls=[];
-  for(let i=0;i<N;i++){const k=assign[i],pr=per[k],c=counter[k]++,col=c%pr,row=(c/pr)|0;
-    votoBalls.push({tx:colX(k)-(pr*VGRID)/2+col*VGRID+VGRID/2,ty:baseline-row*VGRID-VGRID/2,c:CAND[k].c,order:(i*48271)%N})}
+  for(let i=0;i<N;i++){const k=assign[i],c=counter[k]++,col=c%perRow,row=(c/perRow)|0;
+    votoBalls.push({tx:colX(k)-(perRow*VGRID)/2+col*VGRID+VGRID/2,ty:baseline-row*VGRID-VGRID/2,c:CAND[k].c,order:(i*48271)%N})}
   votoGeo={W,H,padX,baseline,fny,sy,r};
   votoFrame=0;if(votoRaf)cancelAnimationFrame(votoRaf);votoRaf=requestAnimationFrame(votoLoop)
 }
