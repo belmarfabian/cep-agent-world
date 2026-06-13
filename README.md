@@ -8,7 +8,9 @@ Mundo simulado de agentes basado en la Encuesta CEP (Chile). Construye una pobla
 
 ## Demo
 
-El dashboard interactivo está en [`data/processed/simulacion_interactiva.html`](data/processed/simulacion_interactiva.html) — se abre directamente en el navegador, sin servidor. Los 1.217 encuestados aparecen sobre un mapa de Chile (rotado, norte a la izquierda) en su región de residencia; al iniciar, toman posición sobre el tema elegido y migran a dos polos de opinión mientras interactúan. Al final se compara la distribución simulada con el margen oficial CEP de la misma pregunta.
+El dashboard interactivo está en [`data/processed/simulacion_interactiva.html`](data/processed/simulacion_interactiva.html) — se abre directamente en el navegador, sin servidor. Los 1.217 encuestados aparecen sobre un mapa de Chile (rotado, norte a la izquierda) en su región de residencia; al iniciar, toman posición sobre el tema elegido y migran a dos polos de opinión mientras interactúan. La simulación corre hasta que las opiniones se estabilizan (nadie cambia de grupo durante varias rondas) y entonces compara la distribución simulada con el margen oficial CEP de la misma pregunta.
+
+El botón **Benchmark** barre una grilla de tolerancia (ε) × influencia (μ), corre la simulación completa para cada combinación y cada pregunta con dato oficial, y muestra un mapa de calor del error medio: con eso se identifica **bajo qué condiciones las propiedades estadísticas de la simulación reproducen las de la encuesta**. Sin esa calibración, el modelo describe mecanismos de influencia social pero no sirve como predictor. Un clic en una celda aplica esos parámetros a la simulación visible; también se pueden ajustar con los controles del encabezado.
 
 ## Método
 
