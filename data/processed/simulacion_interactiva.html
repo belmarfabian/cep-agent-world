@@ -57,6 +57,11 @@ canvas{flex:1;background:#fff}
 .card .demo{width:100%;height:128px;border-radius:10px;background:#fbfbfd;border:1px solid #f0f0f2;margin-bottom:14px;display:block}
 .card.w .tg{color:#9B51E0}
 .card p{font-size:13px;line-height:1.65;color:#666;flex:1}
+.card ul{list-style:none;flex:1;margin:2px 0}
+.card li{font-size:12.5px;line-height:1.5;color:#666;padding:5px 0 5px 22px;position:relative}
+.card li::before{content:"";position:absolute;left:4px;top:11px;width:7px;height:7px;border-radius:50%;background:#0693E3}
+.card.w li::before{background:#9B51E0}
+.card li b{color:#333}
 .card button{margin-top:18px;background:#0693E3;color:#fff;border:none;border-radius:9px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 .card.w button{background:#9B51E0}
 #mlabel{font-size:13px;font-weight:600;color:#999;white-space:nowrap}
@@ -99,14 +104,26 @@ canvas{flex:1;background:#fff}
       <canvas class="demo" id="demoAbm"></canvas>
       <div class="tg">Rapido &bull; transparente &bull; 1.217 agentes</div>
       <h2>Modelo simple &middot; Influencia social</h2>
-      <p>Cada persona es un punto con una opinion (un numero de -1 a +1). En cada ronda conversa con un vecino y, si piensan parecido, se acercan un poco; si piensan muy distinto, no pasa nada. No hay palabras: es una regla matematica (confianza acotada). Es rapido &mdash;miles de rondas en segundos&mdash; y sirve para ver como, a partir de reglas minimas, emergen consensos o polarizacion. Incluye un benchmark que prueba que condiciones reproducen los margenes oficiales de la CEP.</p>
+      <ul>
+        <li>Cada persona es <b>un punto con una opinion</b> (un numero de -1 a +1).</li>
+        <li>En cada ronda conversa con un vecino: si piensan parecido <b>se acercan</b>; si piensan muy distinto, no pasa nada.</li>
+        <li>No hay palabras: es una <b>regla matematica</b> (confianza acotada).</li>
+        <li><b>Rapido:</b> miles de rondas en segundos; se ve como emergen consensos o polarizacion.</li>
+        <li>Incluye un <b>benchmark</b> que prueba que condiciones reproducen los margenes oficiales CEP.</li>
+      </ul>
       <button>Explorar el modelo simple</button>
     </div>
     <div class="card w" onclick="pick('world')">
       <canvas class="demo" id="demoWorld"></canvas>
       <div class="tg">Realista &bull; conversacional &bull; usa un modelo de lenguaje</div>
       <h2>Modelo mundo &middot; Agentes que conversan</h2>
-      <p>Cada persona es un agente de inteligencia artificial con la personalidad de un encuestado real: su edad, region, nivel socioeconomico y posicion politica se convierten en un perfil que el modelo encarna. Los agentes conversan de verdad en espanol chileno, argumentan desde su mundo y luego reportan como cambio su opinion. Es mucho mas rico y realista, pero lento y costoso: cada conversacion son varias llamadas a un modelo de lenguaje. Aqui ves conversaciones entre pares reales de la encuesta.</p>
+      <ul>
+        <li>Cada persona es un <b>agente de IA</b> con la personalidad de un encuestado real.</li>
+        <li>Su edad, region, nivel socioeconomico y posicion politica forman el <b>perfil que el modelo encarna</b>.</li>
+        <li>Los agentes <b>conversan de verdad</b> en espanol chileno y reportan como cambio su opinion.</li>
+        <li>Mas <b>rico y realista</b>, pero lento y costoso: cada conversacion son varias llamadas a un modelo de lenguaje.</li>
+        <li>Aqui ves <b>conversaciones entre pares reales</b> de la encuesta.</li>
+      </ul>
       <button>Explorar el modelo mundo</button>
     </div>
   </div>
