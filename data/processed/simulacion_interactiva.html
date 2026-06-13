@@ -745,9 +745,7 @@ const GROUPS=[
  {n:'Centro-derecha',rg:'6-7',c:'#5f7fb8',t:b=>b>=0.15&&b<0.5},
  {n:'Derecha',rg:'8-10',c:'#2f6f8f',t:b=>b>=0.5}
 ];
-const RUNOFF={J:41.7,K:58.3};
 function grpOf(b){for(let s=0;s<GROUPS.length;s++)if(GROUPS[s].t(b))return s;return 2}
-function jaraFrac(p){return p<-0.12?1:p>0.12?0:0.5}
 function votoInit(){
   const cvv=document.getElementById('vmap');if(!cvv||!cvv.clientWidth)return;
   const W=cvv.clientWidth,H=cvv.clientHeight;
@@ -755,60 +753,51 @@ function votoInit(){
   const flow=GROUPS.map(()=>new Array(CAND.length).fill(0));
   for(let i=0;i<N;i++){const b=D.a[i].b;let bi=0,bd=9;for(let k=0;k<CAND.length;k++){const dd=Math.abs(b-CAND[k].p);if(dd<bd){bd=dd;bi=k}}cnt[bi]++;const s=grpOf(b);flow[s][bi]++;gtot[s]++}
   const sumr=CAND.reduce((a,c)=>a+c.r,0),realc=CAND.map(c=>c.r/sumr*N);
-  let rJ=0,rK=0;for(let k=0;k<CAND.length;k++){const jf=jaraFrac(CAND[k].p);rJ+=realc[k]*jf;rK+=realc[k]*(1-jf)}
-  votoGeo={W,H,flow,gtot,cnt,realc,rJ,rK};
+  VOTO=CAND.map((c,k)=>({n:c.n,c:c.c,cnt:cnt[k]}));
+  votoGeo={W,H,flow,gtot,cnt,realc};
   votoFrame=0;if(votoRaf)cancelAnimationFrame(votoRaf);votoRaf=requestAnimationFrame(votoLoop)
 }
-function votoLoop(){votoFrame++;drawVoto();if(votoFrame>78){votoRaf=null;return}votoRaf=requestAnimationFrame(votoLoop)}
+function votoLoop(){votoFrame++;drawVoto();if(votoFrame>72){votoRaf=null;return}votoRaf=requestAnimationFrame(votoLoop)}
 function drawVoto(){
   const cvv=document.getElementById('vmap');if(!cvv||!votoGeo||!cvv.clientWidth)return;
   const x=cvv.getContext('2d'),dpr=devicePixelRatio,g=votoGeo,W=g.W,H=g.H;
   cvv.width=W*dpr;cvv.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
-  const leftM=150,rightM=160,nw=14,gap=8,top=74,bot=H-30,availH=bot-top;
-  const span=W-leftM-rightM,Ax=leftM,Bx=leftM+span/3,Cx=leftM+2*span/3,Dx=W-rightM,scale=(availH-7*gap)/N;
+  const leftM=160,rightM=200,nw=15,gap=9,top=72,bot=H-30,availH=bot-top;
+  const Ax=leftM,Cx=W-rightM,Bx=(Ax+Cx)/2,scale=(availH-7*gap)/N;
   const stack=v=>{const ys=[],hs=[];let yy=top;for(const t of v){const h=t*scale;ys.push(yy);hs.push(h);yy+=h+gap}return[ys,hs]};
-  const A=stack(g.gtot),B=stack(g.cnt),C=stack(g.realc),Dd=stack([g.rJ,g.rK]);
-  const Ay=A[0],Ah=A[1],By=B[0],Bh=B[1],Cy=C[0],Ch=C[1],Dy=Dd[0],Dh=Dd[1];
-  const prog=Math.min(1,votoFrame/64),JC='#d62728',KC='#003f5c';
+  const A=stack(g.gtot),B=stack(g.cnt),C=stack(g.realc),Ay=A[0],Ah=A[1],By=B[0],Bh=B[1],Cy=C[0],Ch=C[1];
+  const prog=Math.min(1,votoFrame/58);
   const band=(x0,x1,s0,s1,t0,t1,col,al)=>{const cx=(x0+x1)/2;x.beginPath();x.moveTo(x0,s0);x.bezierCurveTo(cx,s0,cx,t0,x1,t0);x.lineTo(x1,t1);x.bezierCurveTo(cx,t1,cx,s1,x0,s1);x.closePath();x.globalAlpha=al;x.fillStyle=col;x.fill();x.globalAlpha=1};
-  // headers
+  // titulos
   x.fillStyle='#333';x.font='700 13px Segoe UI';
-  x.textAlign='left';x.fillText('1. Encuesta CEP',Ax-8,52);
-  x.textAlign='center';x.fillText('2. Por cercania',Bx+nw/2,52);x.fillText('3. 1a vuelta (real)',Cx+nw/2,52);
-  x.textAlign='right';x.fillText('4. 2a vuelta (real)',Dx+nw,52);
-  // cintas (revelado izq->der)
+  x.textAlign='left';x.fillText('1. Encuesta CEP',Ax-nw,50);
+  x.textAlign='center';x.fillText('2. Si votaran por cercania',Bx+nw/2,50);
+  x.textAlign='right';x.fillText('3. Resultado real 1a vuelta',Cx+nw,50);
+  // cintas con revelado izquierda->derecha
   x.save();x.beginPath();x.rect(0,0,prog*W+1,H);x.clip();
   const Lc=Ay.slice(),Rc=By.slice();
   for(let s=0;s<GROUPS.length;s++)for(let k=0;k<CAND.length;k++){const f=g.flow[s][k];if(!f)continue;const h=f*scale;band(Ax+nw,Bx,Lc[s],Lc[s]+h,Rc[k],Rc[k]+h,CAND[k].c,0.4);Lc[s]+=h;Rc[k]+=h}
   for(let k=0;k<CAND.length;k++)band(Bx+nw,Cx,By[k],By[k]+Bh[k],Cy[k],Cy[k]+Ch[k],CAND[k].c,0.5);
-  const Cc=Cy.slice(),Dc=Dy.slice();
-  for(let k=0;k<CAND.length;k++){const jf=jaraFrac(CAND[k].p),tJ=g.realc[k]*jf*scale,tK=g.realc[k]*(1-jf)*scale;
-    if(tJ>0.3){band(Cx+nw,Dx,Cc[k],Cc[k]+tJ,Dc[0],Dc[0]+tJ,JC,0.5);Cc[k]+=tJ;Dc[0]+=tJ}
-    if(tK>0.3){band(Cx+nw,Dx,Cc[k],Cc[k]+tK,Dc[1],Dc[1]+tK,KC,0.5);Cc[k]+=tK;Dc[1]+=tK}}
   x.restore();x.globalAlpha=1;
-  // nodos A
+  // nodos izquierda
   for(let s=0;s<GROUPS.length;s++){const cy=Ay[s]+Ah[s]/2;x.fillStyle=GROUPS[s].c;x.fillRect(Ax,Ay[s],nw,Math.max(1,Ah[s]));
-    x.fillStyle='#333';x.font='600 11px Segoe UI';x.textAlign='right';x.fillText(GROUPS[s].n,Ax-8,cy-3);
-    x.fillStyle='#999';x.font='600 9px Segoe UI';x.fillText('esc. '+GROUPS[s].rg+' · '+Math.round(g.gtot[s]/N*100)+'%',Ax-8,cy+10)}
-  // nodos B
+    x.fillStyle='#333';x.font='600 11px Segoe UI';x.textAlign='right';x.fillText(GROUPS[s].n,Ax-9,cy-3);
+    x.fillStyle='#999';x.font='600 10px Segoe UI';x.fillText('esc. '+GROUPS[s].rg+' · '+Math.round(g.gtot[s]/N*100)+'%',Ax-9,cy+11)}
+  // nodos centro (% si caben)
   for(let k=0;k<CAND.length;k++){x.fillStyle=CAND[k].c;x.fillRect(Bx,By[k],nw,Math.max(1,Bh[k]));
     if(Bh[k]>16){x.fillStyle='#888';x.font='600 9px Segoe UI';x.textAlign='center';x.fillText(Math.round(g.cnt[k]/N*100)+'%',Bx+nw/2,By[k]-3)}}
-  // nodos C + nombres
+  // nodos derecha
   for(let k=0;k<CAND.length;k++){x.fillStyle=CAND[k].c;x.fillRect(Cx,Cy[k],nw,Math.max(1,Ch[k]));
-    x.fillStyle='#333';x.font='600 9.5px Segoe UI';x.textAlign='left';x.fillText(CAND[k].n+' '+Math.round(CAND[k].r)+'%',Cx+nw+6,Cy[k]+Ch[k]/2+3)}
-  // nodos D
-  const DL=[['Jara',g.rJ,JC,RUNOFF.J],['Kast',g.rK,KC,RUNOFF.K]];
-  for(let i=0;i<2;i++){x.fillStyle=DL[i][2];x.fillRect(Dx,Dy[i],nw,Math.max(1,Dh[i]));
-    x.fillStyle='#333';x.font='700 13px Segoe UI';x.textAlign='left';x.fillText(DL[i][0],Dx+nw+8,Dy[i]+Dh[i]/2-3);
-    x.fillStyle=DL[i][2];x.font='600 10px Segoe UI';x.fillText('real '+DL[i][3]+'%',Dx+nw+8,Dy[i]+Dh[i]/2+12)}
+    x.fillStyle='#333';x.font='600 11px Segoe UI';x.textAlign='left';x.fillText(CAND[k].n,Cx+nw+9,Cy[k]+Ch[k]/2+1);
+    x.fillStyle=CAND[k].c;x.font='700 10px Segoe UI';x.fillText(CAND[k].r.toFixed(1)+'%',Cx+nw+9,Cy[k]+Ch[k]/2+14)}
   // linea del 50%
   let cum=0,y50=top;for(let s=0;s<GROUPS.length;s++){if(cum+g.gtot[s]>=N/2){y50=Ay[s]+(N/2-cum)*scale;break}cum+=g.gtot[s]}
-  x.strokeStyle='#444';x.setLineDash([5,4]);x.lineWidth=1.3;x.beginPath();x.moveTo(Ax-12,y50);x.lineTo(Dx+nw+4,y50);x.stroke();x.setLineDash([]);
+  x.strokeStyle='#444';x.setLineDash([5,4]);x.lineWidth=1.3;x.beginPath();x.moveTo(Ax-14,y50);x.lineTo(Cx+nw+4,y50);x.stroke();x.setLineDash([]);
   x.fillStyle='#444';x.font='700 9.5px Segoe UI';x.textAlign='center';x.fillText('50% de las personas',Bx+nw/2,y50-5);
   // notas
   x.fillStyle='#888';x.font='500 11px Segoe UI';x.textAlign='center';
-  x.fillText('Etapa 1: izq-der = autoubicacion politica CEP (escala 1 izq a 10 der). Etapa 4: reparto por bloque a 2a vuelta (Jara izq / Kast der; centro 50/50)',W/2,H-19);
-  x.fillStyle='#aaa';x.fillText('La cercania sobreestima al centro; en 1a vuelta el voto se reparte y en 2a vuelta Kast (58,3%) supera a Jara (41,7%)',W/2,H-5)
+  x.fillText('Etapa 1: posicion izq-der = autoubicacion politica CEP en la escala 1 (izquierda) a 10 (derecha); el 5 o sin identificacion cae al centro',W/2,H-19);
+  x.fillStyle='#aaa';x.fillText('La cercania ideologica sobreestima al centro (Mayne-Nicholls 56% vs 1,3% real); el resultado real se reparte muy distinto',W/2,H-5)
 }
 window.addEventListener('resize',()=>{if(MODE==='voto')votoInit()});
 
