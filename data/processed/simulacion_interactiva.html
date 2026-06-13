@@ -738,42 +738,44 @@ function drawVotoDemo(t){const cv=document.getElementById('demoVoto');if(!cv||!c
 // --- proyeccion de voto ---
 const CAND=[{n:'Artes',p:-1.0,c:'#8b0000'},{n:'Jara',p:-0.7,c:'#d62728'},{n:'Enriquez-Ominami',p:-0.4,c:'#ff7f0e'},{n:'Mayne-Nicholls',p:-0.05,c:'#7f7f7f'},{n:'Parisi',p:0.1,c:'#ffc107'},{n:'Matthei',p:0.45,c:'#9467bd'},{n:'Kast',p:0.8,c:'#003f5c'},{n:'Kaiser',p:1.0,c:'#2ca02c'}];
 let VOTO=[],votoBalls=[],votoGeo=null,votoFrame=0,votoRaf=null;
-const VRATE=Math.max(8,N/70),VDUR=16;
+const VRATE=Math.max(8,N/80),VDUR=18,VGRID=7;
 function votoInit(){
   const cvv=document.getElementById('vmap');if(!cvv||!cvv.clientWidth)return;
-  const W=cvv.clientWidth,H=cvv.clientHeight,padX=70,baseline=H-94,r=3.0;
+  const W=cvv.clientWidth,H=cvv.clientHeight,padX=70,r=VGRID/2-0.4;
   const fx=b=>padX+(b+1)/2*(W-2*padX);
   const cnt=new Array(CAND.length).fill(0),assign=new Int16Array(N);
   for(let i=0;i<N;i++){const b=D.a[i].b;let bi=0,bd=9;for(let k=0;k<CAND.length;k++){const dd=Math.abs(b-CAND[k].p);if(dd<bd){bd=dd;bi=k}}assign[i]=bi;cnt[bi]++}
   VOTO=CAND.map((c,k)=>({n:c.n,c:c.c,p:c.p,cnt:cnt[k],pct:cnt[k]/N*100}));
-  const bound=[-1];for(let k=1;k<CAND.length;k++)bound.push((CAND[k-1].p+CAND[k].p)/2);bound.push(1);
-  const binL=[],perRow=[];
-  for(let k=0;k<CAND.length;k++){const l=fx(bound[k]),rt=fx(bound[k+1]);binL.push(l);perRow.push(Math.max(1,Math.floor((rt-l-4)/(2*r))))}
-  const counter=new Array(CAND.length).fill(0);votoBalls=[];
-  for(let i=0;i<N;i++){const k=assign[i],c=counter[k]++,col=c%perRow[k],row=(c/perRow[k])|0;
-    votoBalls.push({sx:fx(D.a[i].b),tx:binL[k]+3+col*2*r+r,ty:baseline-row*2*r-r,c:CAND[k].c,order:(i*48271)%N})}
-  votoGeo={W,H,padX,baseline,r,fx};
+  const byval={};for(let i=0;i<N;i++){const v=Math.round(D.a[i].b*100)/100;(byval[v]=byval[v]||[]).push(i)}
+  const per={};let maxtop=0;
+  for(const v in byval){const n=byval[v].length;per[v]=Math.max(6,Math.min(46,Math.round(Math.sqrt(n)*1.7)));maxtop=Math.max(maxtop,Math.ceil(n/per[v])*VGRID)}
+  const blockH=46+maxtop+78,offY=Math.max(8,(H-blockH)/2),axisY=offY+40,baseline=axisY+6+maxtop;
+  votoBalls=[];
+  for(const v in byval){const idx=byval[v],pr=per[v],cx=fx(+v);
+    for(let c=0;c<idx.length;c++){const col=c%pr,row=(c/pr)|0,i=idx[c];
+      votoBalls.push({sx:fx(D.a[i].b),tx:cx-(pr*VGRID)/2+col*VGRID+VGRID/2,ty:baseline-row*VGRID-VGRID/2,c:CAND[assign[i]].c,order:(i*48271)%N})}}
+  votoGeo={W,H,padX,axisY,baseline,r,fx};
   votoFrame=0;if(votoRaf)cancelAnimationFrame(votoRaf);votoRaf=requestAnimationFrame(votoLoop)
 }
 function votoLoop(){votoFrame++;drawVoto();if(votoFrame>N/VRATE+VDUR+3){votoRaf=null;return}votoRaf=requestAnimationFrame(votoLoop)}
 function drawVoto(){
   const cvv=document.getElementById('vmap');if(!cvv||!votoGeo||!cvv.clientWidth)return;
-  const x=cvv.getContext('2d'),dpr=devicePixelRatio,g=votoGeo,W=g.W,H=g.H,bl=g.baseline;
+  const x=cvv.getContext('2d'),dpr=devicePixelRatio,g=votoGeo,W=g.W,H=g.H,ay=g.axisY,bl=g.baseline;
   cvv.width=W*dpr;cvv.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
   x.fillStyle='#333';x.font='700 15px Segoe UI';x.textAlign='left';
-  x.fillText('Cada persona cae desde su autoubicacion izquierda-derecha al candidato mas cercano',24,26);
-  x.strokeStyle='#e8e8ee';x.lineWidth=2;x.beginPath();x.moveTo(g.padX,50);x.lineTo(W-g.padX,50);x.stroke();
-  x.fillStyle='#003f5c';x.font='600 11px Segoe UI';x.textAlign='left';x.fillText('Izquierda',g.padX,44);
-  x.fillStyle='#d62728';x.textAlign='right';x.fillText('Derecha',W-g.padX,44);
+  x.fillText('Cada persona cae en su autoubicacion izquierda-derecha; el color es el candidato mas cercano',24,ay-22);
+  x.strokeStyle='#e8e8ee';x.lineWidth=2;x.beginPath();x.moveTo(g.padX,ay);x.lineTo(W-g.padX,ay);x.stroke();
+  x.fillStyle='#003f5c';x.font='600 11px Segoe UI';x.textAlign='left';x.fillText('Izquierda',g.padX,ay-6);
+  x.fillStyle='#d62728';x.textAlign='right';x.fillText('Derecha',W-g.padX,ay-6);
   x.strokeStyle='#eee';x.lineWidth=1;x.beginPath();x.moveTo(g.padX,bl+1);x.lineTo(W-g.padX,bl+1);x.stroke();
   for(const b of votoBalls){
     const p=Math.max(0,Math.min(1,(votoFrame-b.order/VRATE)/VDUR));if(p<=0)continue;
     const e=p<0.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
-    x.beginPath();x.arc(b.sx+(b.tx-b.sx)*e,50+(b.ty-50)*e,g.r,0,7);x.fillStyle=b.c;x.fill()
+    x.beginPath();x.arc(b.sx+(b.tx-b.sx)*e,ay+(b.ty-ay)*e,g.r,0,7);x.fillStyle=b.c;x.fill()
   }
   for(const v of VOTO){const cxp=g.fx(v.p);
-    x.save();x.translate(cxp,bl+16);x.rotate(-0.5);x.textAlign='right';x.fillStyle='#555';x.font='600 11px Segoe UI';x.fillText(v.n,0,0);x.restore();
-    x.fillStyle=v.c;x.font='700 12px Segoe UI';x.textAlign='center';x.fillText(v.pct.toFixed(1)+'%',cxp,bl+66)}
+    x.save();x.translate(cxp,bl+16);x.rotate(-0.32);x.textAlign='right';x.fillStyle='#555';x.font='600 11px Segoe UI';x.fillText(v.n,0,0);x.restore();
+    x.fillStyle=v.c;x.font='700 13px Segoe UI';x.textAlign='center';x.fillText(Math.round(v.pct)+'%',cxp,bl+58)}
 }
 window.addEventListener('resize',()=>{if(MODE==='voto')votoInit()});
 
