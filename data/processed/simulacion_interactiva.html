@@ -745,15 +745,14 @@ function votoInit(){
   const fx=b=>padX+(b+1)/2*(W-2*padX);
   const cnt=new Array(CAND.length).fill(0),assign=new Int16Array(N);
   for(let i=0;i<N;i++){const b=D.a[i].b;let bi=0,bd=9;for(let k=0;k<CAND.length;k++){const dd=Math.abs(b-CAND[k].p);if(dd<bd){bd=dd;bi=k}}assign[i]=bi;cnt[bi]++}
-  VOTO=CAND.map((c,k)=>({n:c.n,c:c.c,p:c.p,cnt:cnt[k],pct:cnt[k]/N*100}));
-  const byval={};for(let i=0;i<N;i++){const v=Math.round(D.a[i].b*100)/100;(byval[v]=byval[v]||[]).push(i)}
-  const per={};for(const v in byval){const n=byval[v].length;per[v]=Math.max(6,Math.min(46,Math.round(Math.sqrt(n)*1.7)))}
-  const baseline=H-86,fny=8,sy=fny+22;
+  const nC=CAND.length,colX=k=>padX+(W-2*padX)*(k+0.5)/nC;
+  const per=CAND.map((c,k)=>Math.max(6,Math.min(30,Math.round(Math.sqrt(cnt[k])*1.6))));
+  VOTO=CAND.map((c,k)=>({n:c.n,c:c.c,cx:colX(k),cnt:cnt[k],pct:cnt[k]/N*100}));
+  const baseline=H-86,fny=8,sy=fny+22,counter=new Array(nC).fill(0);
   votoBalls=[];
-  for(const v in byval){const idx=byval[v],pr=per[v],cx=fx(+v);
-    for(let c=0;c<idx.length;c++){const col=c%pr,row=(c/pr)|0,i=idx[c];
-      votoBalls.push({tx:cx-(pr*VGRID)/2+col*VGRID+VGRID/2,ty:baseline-row*VGRID-VGRID/2,c:CAND[assign[i]].c,order:(i*48271)%N})}}
-  votoGeo={W,H,padX,baseline,fny,sy,r,fx};
+  for(let i=0;i<N;i++){const k=assign[i],pr=per[k],c=counter[k]++,col=c%pr,row=(c/pr)|0;
+    votoBalls.push({tx:colX(k)-(pr*VGRID)/2+col*VGRID+VGRID/2,ty:baseline-row*VGRID-VGRID/2,c:CAND[k].c,order:(i*48271)%N})}
+  votoGeo={W,H,padX,baseline,fny,sy,r};
   votoFrame=0;if(votoRaf)cancelAnimationFrame(votoRaf);votoRaf=requestAnimationFrame(votoLoop)
 }
 function votoLoop(){votoFrame++;drawVoto();if(votoFrame>N/VRATE+95){votoRaf=null;return}votoRaf=requestAnimationFrame(votoLoop)}
@@ -771,7 +770,7 @@ function drawVoto(){
     if(y>=b.ty){y=b.ty;p=1}else{p=(y-sy)/(b.ty-sy)}
     x.beginPath();x.arc(fnx+(b.tx-fnx)*p,y,g.r,0,7);x.fillStyle=b.c;x.fill()
   }
-  for(const v of VOTO){const cxp=g.fx(v.p);
+  for(const v of VOTO){const cxp=v.cx;
     x.save();x.translate(cxp,bl+16);x.rotate(-0.32);x.textAlign='right';x.fillStyle='#555';x.font='600 11px Segoe UI';x.fillText(v.n,0,0);x.restore();
     x.fillStyle=v.c;x.font='700 13px Segoe UI';x.textAlign='center';x.fillText(Math.round(v.pct)+'%',cxp,bl+58)}
   x.fillStyle='#aaa';x.font='500 11px Segoe UI';x.textAlign='center';x.fillText('Cada voto cae del embudo al candidato mas cercano por ideologia',W/2,H-6)
