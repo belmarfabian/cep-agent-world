@@ -54,6 +54,7 @@ canvas{flex:1;background:#fff}
 .card.w:hover{border-color:#9B51E0;box-shadow:0 8px 30px rgba(155,81,224,0.12)}
 .card h2{font-size:18px;color:#333;margin-bottom:4px}
 .card .tg{font-size:11px;color:#0693E3;font-weight:600;margin-bottom:12px;text-transform:uppercase;letter-spacing:.4px}
+.card .demo{width:100%;height:128px;border-radius:10px;background:#fbfbfd;border:1px solid #f0f0f2;margin-bottom:14px;display:block}
 .card.w .tg{color:#9B51E0}
 .card p{font-size:13px;line-height:1.65;color:#666;flex:1}
 .card button{margin-top:18px;background:#0693E3;color:#fff;border:none;border-radius:9px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
@@ -95,12 +96,14 @@ canvas{flex:1;background:#fff}
   <div class="sub">Ambos parten de los 1.217 encuestados reales de la CEP N.95. Elige como quieres que interactuen.</div>
   <div class="cards">
     <div class="card" onclick="pick('abm')">
+      <canvas class="demo" id="demoAbm"></canvas>
       <div class="tg">Rapido &bull; transparente &bull; 1.217 agentes</div>
       <h2>Modelo simple &middot; Influencia social</h2>
       <p>Cada persona es un punto con una opinion (un numero de -1 a +1). En cada ronda conversa con un vecino y, si piensan parecido, se acercan un poco; si piensan muy distinto, no pasa nada. No hay palabras: es una regla matematica (confianza acotada). Es rapido &mdash;miles de rondas en segundos&mdash; y sirve para ver como, a partir de reglas minimas, emergen consensos o polarizacion. Incluye un benchmark que prueba que condiciones reproducen los margenes oficiales de la CEP.</p>
       <button>Explorar el modelo simple</button>
     </div>
     <div class="card w" onclick="pick('world')">
+      <canvas class="demo" id="demoWorld"></canvas>
       <div class="tg">Realista &bull; conversacional &bull; usa un modelo de lenguaje</div>
       <h2>Modelo mundo &middot; Agentes que conversan</h2>
       <p>Cada persona es un agente de inteligencia artificial con la personalidad de un encuestado real: su edad, region, nivel socioeconomico y posicion politica se convierten en un perfil que el modelo encarna. Los agentes conversan de verdad en espanol chileno, argumentan desde su mundo y luego reportan como cambio su opinion. Es mucho mas rico y realista, pero lento y costoso: cada conversacion son varias llamadas a un modelo de lenguaje. Aqui ves conversaciones entre pares reales de la encuesta.</p>
@@ -571,7 +574,45 @@ function setMode(m){
   if(abm){resize();draw()}else{wInit()}
 }
 function pick(m){setMode(m)}
-function openPicker(){document.getElementById('picker').style.display='flex'}
+function openPicker(){document.getElementById('picker').style.display='flex';startPickerAnim()}
+
+// ===== Mini-animaciones explicativas del selector =====
+function fitC(cv){const dpr=devicePixelRatio,W=cv.clientWidth,Hh=cv.clientHeight;if(cv.width!==W*dpr){cv.width=W*dpr;cv.height=Hh*dpr}const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);return[x,W,Hh]}
+function lerpStr(a,b,t){return'rgb('+Math.round(a[0]+(b[0]-a[0])*t)+','+Math.round(a[1]+(b[1]-a[1])*t)+','+Math.round(a[2]+(b[2]-a[2])*t)+')'}
+const ABMD=[];for(let i=0;i<26;i++)ABMD.push({x0:(i*0.137+0.05)%1,side:i%2,row:(i/2)|0});
+function drawAbmDemo(t){
+  const cv=document.getElementById('demoAbm');if(!cv||!cv.clientWidth)return;const r=fitC(cv),x=r[0],w=r[1],h=r[2];
+  x.clearRect(0,0,w,h);
+  const cyc=(t%5)/5,p=cyc<0.7?ease(cyc/0.7):1,by=h*0.6;
+  x.strokeStyle='#e8e8ee';x.lineWidth=2;x.beginPath();x.moveTo(w*0.12,by);x.lineTo(w*0.88,by);x.stroke();
+  for(const d of ABMD){
+    const tx=d.side?w*0.66+(d.row%3)*6:w*0.34-(d.row%3)*6, ty=by-d.row*6.5-5;
+    const sx=w*(0.14+d.x0*0.72), sy=h*0.22+d.x0*18;
+    const cxp=sx+(tx-sx)*p, cyp=sy+(ty-sy)*p;
+    x.beginPath();x.arc(cxp,cyp,3.6,0,7);
+    x.fillStyle=d.side?lerpStr([198,198,208],[237,112,112],p):lerpStr([198,198,208],[6,147,227],p);x.fill()
+  }
+  x.font='600 10px Segoe UI';x.textAlign='center';
+  x.fillStyle='#0693E3';x.fillText('a favor',w*0.3,by+16);
+  x.fillStyle='#ED7070';x.fillText('en contra',w*0.7,by+16);
+  x.fillStyle='#bbb';x.font='500 9px Segoe UI';x.fillText('opiniones que se agrupan',w/2,h-6)
+}
+function person(x,cx,cy,col){x.fillStyle=col;x.beginPath();x.arc(cx,cy-7,7,0,7);x.fill();x.beginPath();x.moveTo(cx-8,cy+12);x.quadraticCurveTo(cx,cy-1,cx+8,cy+12);x.fill()}
+function bubble(x,cx,cy,left,o){if(o<=0)return;x.globalAlpha=Math.min(1,o);x.fillStyle='#fff';x.strokeStyle='#e4e4ea';x.lineWidth=1;const bw=30,bh=16,bx=left?cx:cx-bw;x.beginPath();if(x.roundRect)x.roundRect(bx,cy-bh,bw,bh,6);else x.rect(bx,cy-bh,bw,bh);x.fill();x.stroke();x.fillStyle='#c4c4cc';for(let i=0;i<3;i++){x.beginPath();x.arc(bx+9+i*6,cy-bh/2,1.5,0,7);x.fill()}x.globalAlpha=1}
+function drawWorldDemo(t){
+  const cv=document.getElementById('demoWorld');if(!cv||!cv.clientWidth)return;const r=fitC(cv),x=r[0],w=r[1],h=r[2];
+  x.clearRect(0,0,w,h);
+  const cyc=(t%6)/6,py=h*0.56;
+  const conv=cyc>0.78?ease((cyc-0.78)/0.22):0;
+  const ax=w*0.27+(w*0.06)*conv, bx=w*0.73-(w*0.06)*conv;
+  for(let k=0;k<4;k++){const st=0.12+k*0.15,app=(cyc-st)/0.13;if(app>0){const left=k%2===0;bubble(x,left?ax+16:bx-16,py-22-(k%2)*5,left,app<1?app:(app<1.5?1:0))}}
+  person(x,ax,py,lerpStr([6,147,227],[120,90,180],conv));
+  person(x,bx,py,lerpStr([237,112,112],[120,90,180],conv));
+  x.fillStyle='#bbb';x.font='500 9px Segoe UI';x.textAlign='center';x.fillText('dos personas que conversan y se influyen',w/2,h-6)
+}
+let pickerRaf=null;
+function pickerLoop(t){if(document.getElementById('picker').style.display==='none'){pickerRaf=null;return}drawAbmDemo(t/1000);drawWorldDemo(t/1000);pickerRaf=requestAnimationFrame(pickerLoop)}
+function startPickerAnim(){if(!pickerRaf)pickerRaf=requestAnimationFrame(pickerLoop)}
 
 let wIdx=0;
 function wInit(){
@@ -626,5 +667,5 @@ window.addEventListener('resize',()=>{if(MODE==='world'&&typeof CHATS!=='undefin
 document.getElementById('q').addEventListener('change',reset);
 document.getElementById('eps').addEventListener('input',e=>document.getElementById('ev').textContent=(+e.target.value/100).toFixed(2));
 document.getElementById('mu').addEventListener('input',e=>document.getElementById('mv').textContent=(+e.target.value/100).toFixed(2));
-init();draw()
+init();draw();startPickerAnim()
 </script></body></html>
