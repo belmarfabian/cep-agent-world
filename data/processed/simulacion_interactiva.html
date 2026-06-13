@@ -95,7 +95,7 @@ canvas{flex:1;background:#fff}
 .wctrl button.sec{background:#f5f5f5;color:#888}
 #wcount{font-size:13px;color:#888;min-width:60px;text-align:center}
 #votoView{flex:1;display:none;flex-direction:column;overflow:hidden;justify-content:center}
-#vmap{width:100%;height:400px;flex:none}
+#vmap{width:100%;height:560px;flex:none}
 .cards{max-width:1140px}
 .card{min-width:286px}
 .pick-sec{font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.6px;width:100%;text-align:center;margin:14px 0 -4px}
@@ -738,7 +738,7 @@ function drawVotoDemo(t){const cv=document.getElementById('demoVoto');if(!cv||!c
 // --- proyeccion de voto ---
 const CAND=[{n:'Artes',p:-1.0,c:'#8b0000'},{n:'Jara',p:-0.7,c:'#d62728'},{n:'Enriquez-Ominami',p:-0.4,c:'#ff7f0e'},{n:'Mayne-Nicholls',p:-0.05,c:'#7f7f7f'},{n:'Parisi',p:0.1,c:'#ffc107'},{n:'Matthei',p:0.45,c:'#9467bd'},{n:'Kast',p:0.8,c:'#003f5c'},{n:'Kaiser',p:1.0,c:'#2ca02c'}];
 let VOTO=[],votoBalls=[],votoGeo=null,votoFrame=0,votoRaf=null;
-const VRATE=Math.max(6,N/120),VDUR=34,VGRID=7;
+const VRATE=Math.max(5,N/150),VG=0.22,VGRID=7;
 function votoInit(){
   const cvv=document.getElementById('vmap');if(!cvv||!cvv.clientWidth)return;
   const W=cvv.clientWidth,H=cvv.clientHeight,padX=70,r=VGRID/2-0.4;
@@ -747,38 +747,34 @@ function votoInit(){
   for(let i=0;i<N;i++){const b=D.a[i].b;let bi=0,bd=9;for(let k=0;k<CAND.length;k++){const dd=Math.abs(b-CAND[k].p);if(dd<bd){bd=dd;bi=k}}assign[i]=bi;cnt[bi]++}
   VOTO=CAND.map((c,k)=>({n:c.n,c:c.c,p:c.p,cnt:cnt[k],pct:cnt[k]/N*100}));
   const byval={};for(let i=0;i<N;i++){const v=Math.round(D.a[i].b*100)/100;(byval[v]=byval[v]||[]).push(i)}
-  const per={};let maxtop=0;
-  for(const v in byval){const n=byval[v].length;per[v]=Math.max(6,Math.min(46,Math.round(Math.sqrt(n)*1.7)));maxtop=Math.max(maxtop,Math.ceil(n/per[v])*VGRID)}
-  const blockH=46+maxtop+78,offY=Math.max(8,(H-blockH)/2),axisY=offY+40,baseline=axisY+6+maxtop;
+  const per={};for(const v in byval){const n=byval[v].length;per[v]=Math.max(6,Math.min(46,Math.round(Math.sqrt(n)*1.7)))}
+  const baseline=H-86,fny=8,sy=fny+22;
   votoBalls=[];
   for(const v in byval){const idx=byval[v],pr=per[v],cx=fx(+v);
     for(let c=0;c<idx.length;c++){const col=c%pr,row=(c/pr)|0,i=idx[c];
-      votoBalls.push({sx:fx(D.a[i].b),tx:cx-(pr*VGRID)/2+col*VGRID+VGRID/2,ty:baseline-row*VGRID-VGRID/2,c:CAND[assign[i]].c,order:(i*48271)%N})}}
-  votoGeo={W,H,padX,axisY,baseline,r,fx};
+      votoBalls.push({tx:cx-(pr*VGRID)/2+col*VGRID+VGRID/2,ty:baseline-row*VGRID-VGRID/2,c:CAND[assign[i]].c,order:(i*48271)%N})}}
+  votoGeo={W,H,padX,baseline,fny,sy,r,fx};
   votoFrame=0;if(votoRaf)cancelAnimationFrame(votoRaf);votoRaf=requestAnimationFrame(votoLoop)
 }
-function votoLoop(){votoFrame++;drawVoto();if(votoFrame>N/VRATE+VDUR+3){votoRaf=null;return}votoRaf=requestAnimationFrame(votoLoop)}
+function votoLoop(){votoFrame++;drawVoto();if(votoFrame>N/VRATE+95){votoRaf=null;return}votoRaf=requestAnimationFrame(votoLoop)}
 function drawVoto(){
   const cvv=document.getElementById('vmap');if(!cvv||!votoGeo||!cvv.clientWidth)return;
-  const x=cvv.getContext('2d'),dpr=devicePixelRatio,g=votoGeo,W=g.W,H=g.H,ay=g.axisY,bl=g.baseline;
+  const x=cvv.getContext('2d'),dpr=devicePixelRatio,g=votoGeo,W=g.W,H=g.H,bl=g.baseline,fnx=W/2,sy=g.sy;
   cvv.width=W*dpr;cvv.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
-  x.fillStyle='#333';x.font='700 15px Segoe UI';x.textAlign='left';
-  x.fillText('Cada persona cae en su autoubicacion izquierda-derecha; el color es el candidato mas cercano',24,ay-22);
-  x.strokeStyle='#e8e8ee';x.lineWidth=2;x.beginPath();x.moveTo(g.padX,ay);x.lineTo(W-g.padX,ay);x.stroke();
-  x.fillStyle='#003f5c';x.font='600 11px Segoe UI';x.textAlign='left';x.fillText('Izquierda',g.padX,ay-6);
-  x.fillStyle='#d62728';x.textAlign='right';x.fillText('Derecha',W-g.padX,ay-6);
+  x.fillStyle='#003f5c';x.font='600 11px Segoe UI';x.textAlign='left';x.fillText('Izquierda',g.padX,30);
+  x.fillStyle='#d62728';x.textAlign='right';x.fillText('Derecha',W-g.padX,30);
+  x.strokeStyle='#cfd2da';x.lineWidth=2;x.beginPath();x.moveTo(fnx-26,g.fny);x.lineTo(fnx-7,g.fny+18);x.lineTo(fnx-7,sy);x.moveTo(fnx+26,g.fny);x.lineTo(fnx+7,g.fny+18);x.lineTo(fnx+7,sy);x.stroke();
   x.strokeStyle='#eee';x.lineWidth=1;x.beginPath();x.moveTo(g.padX,bl+1);x.lineTo(W-g.padX,bl+1);x.stroke();
-  const fnx=W/2,fny=4;
-  x.strokeStyle='#cfd2da';x.lineWidth=2;x.beginPath();x.moveTo(fnx-24,fny);x.lineTo(fnx-6,fny+16);x.lineTo(fnx-6,fny+22);x.moveTo(fnx+24,fny);x.lineTo(fnx+6,fny+16);x.lineTo(fnx+6,fny+22);x.stroke();
   for(const b of votoBalls){
-    const p=Math.max(0,Math.min(1,(votoFrame-b.order/VRATE)/VDUR));if(p<=0)continue;
-    const e=p<0.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
-    const yc=fny+18+(b.ty-fny-18)*e;
-    x.beginPath();x.arc(fnx+(b.tx-fnx)*e,yc,g.r,0,7);x.fillStyle=b.c;x.fill()
+    const f=votoFrame-b.order/VRATE;if(f<=0)continue;
+    let y=sy+0.5*VG*f*f,p;
+    if(y>=b.ty){y=b.ty;p=1}else{p=(y-sy)/(b.ty-sy)}
+    x.beginPath();x.arc(fnx+(b.tx-fnx)*p,y,g.r,0,7);x.fillStyle=b.c;x.fill()
   }
   for(const v of VOTO){const cxp=g.fx(v.p);
     x.save();x.translate(cxp,bl+16);x.rotate(-0.32);x.textAlign='right';x.fillStyle='#555';x.font='600 11px Segoe UI';x.fillText(v.n,0,0);x.restore();
     x.fillStyle=v.c;x.font='700 13px Segoe UI';x.textAlign='center';x.fillText(Math.round(v.pct)+'%',cxp,bl+58)}
+  x.fillStyle='#aaa';x.font='500 11px Segoe UI';x.textAlign='center';x.fillText('Cada voto cae del embudo al candidato mas cercano por ideologia',W/2,H-6)
 }
 window.addEventListener('resize',()=>{if(MODE==='voto')votoInit()});
 
