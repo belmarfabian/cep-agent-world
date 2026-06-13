@@ -775,9 +775,10 @@ function drawVoto(){
     const f=votoFrame-b.order/VRATE;if(f<=0)continue;
     let y=sy+0.5*VG*f*f,p;
     if(y>=b.ty){y=b.ty;p=1}else{p=(y-sy)/(b.ty-sy)}
-    const fade=Math.max(0,Math.min(1,(g.pegBot-y)/(g.pegBot-g.pegTop)));
-    const wig=Math.sin((y-sy)/g.pegGapY*Math.PI+b.ph)*9*fade;
-    x.beginPath();x.arc(fnx+(b.tx-fnx)*p+wig,y,g.r,0,7);x.fillStyle=b.c;x.fill()
+    const t=(y-g.pegTop)/g.pegGapY/1.5+b.ph,tri=2*Math.abs(2*(t-Math.floor(t+0.5)))-1;
+    const fin=Math.max(0,Math.min(1,(y-g.pegTop)/g.pegGapY)),fout=Math.max(0,Math.min(1,(g.pegBot-y)/(2*g.pegGapY)));
+    const wig=tri*18*fin*fout;
+    x.beginPath();x.arc(fnx+(b.tx-fnx)*Math.pow(p,2.2)+wig,y,g.r,0,7);x.fillStyle=b.c;x.fill()
   }
   for(const v of VOTO){const cxp=v.cx;
     x.save();x.translate(cxp,bl+16);x.rotate(-0.32);x.textAlign='right';x.fillStyle='#555';x.font='600 11px Segoe UI';x.fillText(v.n,0,0);x.restore();
