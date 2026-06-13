@@ -94,37 +94,94 @@ canvas{flex:1;background:#fff}
 .wctrl button{background:#667eea;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
 .wctrl button.sec{background:#f5f5f5;color:#888}
 #wcount{font-size:13px;color:#888;min-width:60px;text-align:center}
+#votoView{flex:1;display:none;flex-direction:column;overflow:hidden}
+#vmap{flex:1;width:100%}
+.cards{max-width:1140px}
+.card{min-width:286px}
+.pick-sec{font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.6px;width:100%;text-align:center;margin:14px 0 -4px}
+.card.v .tg{color:#d39e00}
+.card.v li::before{background:#d39e00}
+.card.v button{background:#d39e00}
+#medwrap label{margin-left:10px}
 </style></head><body>
 
 <div id="picker">
-  <h1>Dos formas de simular la opinion publica</h1>
-  <div class="sub">Ambos parten de los 1.217 encuestados reales de la CEP N.95. Elige como quieres que interactuen.</div>
+  <h1>Varias formas de simular la opinion publica</h1>
+  <div class="sub">Todas parten de los 1.217 encuestados reales de la CEP N.95. Elige como quieres que interactuen.</div>
   <div class="cards">
+    <div class="pick-sec">Modelos de influencia (regla matematica, rapidos, sin costo)</div>
     <div class="card" onclick="pick('abm')">
       <canvas class="demo" id="demoAbm"></canvas>
-      <div class="tg">Rapido &bull; transparente &bull; 1.217 agentes</div>
+      <div class="tg">Base &bull; consenso</div>
       <h2>Modelo simple &middot; Influencia social</h2>
       <ul>
-        <li>Cada persona es <b>un punto con una opinion</b> (un numero de -1 a +1).</li>
-        <li>En cada ronda conversa con un vecino: si piensan parecido <b>se acercan</b>; si piensan muy distinto, no pasa nada.</li>
-        <li>No hay palabras: es una <b>regla matematica</b> (confianza acotada).</li>
-        <li><b>Rapido:</b> miles de rondas en segundos; se ve como emergen consensos o polarizacion.</li>
-        <li>Incluye un <b>benchmark</b> que prueba que condiciones reproducen los margenes oficiales CEP.</li>
+        <li>Cada persona es <b>un punto con una opinion</b> (-1 a +1).</li>
+        <li>Conversa con un vecino: si piensan parecido <b>se acercan</b>; si no, nada.</li>
+        <li>Es una <b>regla matematica</b> (confianza acotada), sin palabras.</li>
+        <li>Incluye <b>benchmark</b> contra los margenes oficiales CEP.</li>
       </ul>
-      <button>Explorar el modelo simple</button>
+      <button>Explorar</button>
     </div>
+    <div class="card" onclick="pick('repulsion')">
+      <canvas class="demo" id="demoRep"></canvas>
+      <div class="tg">Polarizacion</div>
+      <h2>Polarizacion &middot; Atraccion y rechazo</h2>
+      <ul>
+        <li>Como el modelo simple, pero las posturas muy distintas <b>se rechazan</b>.</li>
+        <li>Si dos personas piensan muy diferente, en vez de ignorarse <b>se alejan mas</b>.</li>
+        <li>El resultado no es consenso: son <b>dos bloques que se separan</b>.</li>
+        <li>Util para estudiar como nace la <b>polarizacion</b>.</li>
+      </ul>
+      <button>Explorar</button>
+    </div>
+    <div class="card" onclick="pick('medios')">
+      <canvas class="demo" id="demoMed"></canvas>
+      <div class="tg">Agenda externa</div>
+      <h2>Medios y lideres</h2>
+      <ul>
+        <li>Ademas de los vecinos, una <b>senal externa</b> (medios, figuras politicas) influye a todos.</li>
+        <li>Las opiniones son <b>atraidas hacia esa senal</b>, no solo entre si.</li>
+        <li>Puedes <b>mover la senal</b> a izquierda o derecha y ver el efecto.</li>
+        <li>Muestra como la <b>agenda mediatica</b> arrastra a la poblacion.</li>
+      </ul>
+      <button>Explorar</button>
+    </div>
+    <div class="card" onclick="pick('umbral')">
+      <canvas class="demo" id="demoUmb"></canvas>
+      <div class="tg">Contagio</div>
+      <h2>Contagio por umbral</h2>
+      <ul>
+        <li>La gente cambia por <b>presion de la mayoria</b>, no de a poco.</li>
+        <li>Adopta una postura cuando <b>suficientes vecinos</b> ya la tienen.</li>
+        <li>Las personas mas abiertas <b>cambian antes</b>.</li>
+        <li>Produce <b>cascadas</b>: estallidos, protestas o modas de opinion.</li>
+      </ul>
+      <button>Explorar</button>
+    </div>
+    <div class="pick-sec">Otros enfoques</div>
     <div class="card w" onclick="pick('world')">
       <canvas class="demo" id="demoWorld"></canvas>
-      <div class="tg">Realista &bull; conversacional &bull; usa un modelo de lenguaje</div>
+      <div class="tg">Realista &bull; usa un modelo de lenguaje</div>
       <h2>Modelo mundo &middot; Agentes que conversan</h2>
       <ul>
         <li>Cada persona es un <b>agente de IA</b> con la personalidad de un encuestado real.</li>
-        <li>Su edad, region, nivel socioeconomico y posicion politica forman el <b>perfil que el modelo encarna</b>.</li>
-        <li>Los agentes <b>conversan de verdad</b> en espanol chileno y reportan como cambio su opinion.</li>
-        <li>Mas <b>rico y realista</b>, pero lento y costoso: cada conversacion son varias llamadas a un modelo de lenguaje.</li>
-        <li>Aqui ves <b>conversaciones entre pares reales</b> de la encuesta.</li>
+        <li>Edad, region, NSE y posicion politica forman el <b>perfil que el modelo encarna</b>.</li>
+        <li>Los agentes <b>conversan de verdad</b> en espanol chileno y reportan su cambio.</li>
+        <li>Mas rico y realista, pero <b>lento y costoso</b> (llama a un modelo de lenguaje).</li>
       </ul>
-      <button>Explorar el modelo mundo</button>
+      <button>Explorar</button>
+    </div>
+    <div class="card v" onclick="pick('voto')">
+      <canvas class="demo" id="demoVoto"></canvas>
+      <div class="tg">Electoral &bull; conecta con CEP/SERVEL</div>
+      <h2>Proyeccion de voto</h2>
+      <ul>
+        <li>Cada encuestado <b>vota por el candidato</b> presidencial 2025 mas cercano a su posicion.</li>
+        <li>Reparte la muestra entre los <b>ocho candidatos</b> por proximidad ideologica.</li>
+        <li>Conecta el simulador con tu <b>trabajo electoral</b>.</li>
+        <li>Es un <b>mapeo heuristico</b> desde la autoubicacion, no un pronostico.</li>
+      </ul>
+      <button>Ver proyeccion</button>
     </div>
   </div>
 </div>
@@ -144,6 +201,7 @@ canvas{flex:1;background:#fff}
   <div class="prm">
     <label>Tolerancia <b id="ev">0.40</b></label><input type="range" id="eps" min="5" max="80" value="40">
     <label>Influencia <b id="mv">0.35</b></label><input type="range" id="mu" min="5" max="80" value="35">
+    <span id="medwrap" style="display:none;align-items:center;gap:6px"><label>Senal medios <b id="msv">0.00</b></label><input type="range" id="ms" min="-100" max="100" value="0"></span>
   </div>
   <div class="btns">
     <button class="go" id="btn" onclick="toggle()">Iniciar</button>
@@ -172,6 +230,11 @@ canvas{flex:1;background:#fff}
 </div>
 
 
+<div id="votoView">
+  <div class="wtop"><div><b>Proyeccion de voto:</b> cada encuestado vota por el candidato presidencial 2025 mas cercano a su posicion izquierda-derecha.</div><div class="wtopic">Mapeo heuristico, no es un pronostico</div></div>
+  <canvas id="vmap"></canvas>
+  <div class="wctrl"><span style="font-size:12px;color:#999">Basado en la autoubicacion politica (1-10) de la CEP N.95; no incorpora encuestas de intencion de voto ni viabilidad de campana.</span></div>
+</div>
 <div class="pnl L" id="pL">
   <h4>Muestra CEP N.95</h4>
   <div id="sb"></div>
@@ -179,14 +242,7 @@ canvas{flex:1;background:#fff}
 </div>
 <div class="pnl R" id="pR">
   <h4>Metodologia</h4>
-  <div class="bx">Cada punto es <b>una persona real</b> que respondio la Encuesta CEP N.95 (n=1.217), ubicada en su region. Haz clic en un punto para conocerla.</div>
-  <div class="bx"><b>1.</b> Parte con una opinion sobre el tema, segun lo que respondio en la encuesta.</div>
-  <div class="bx"><b>2.</b> Esta conectada con gente parecida (familia, vecinos, trabajo) y unos pocos contactos lejanos.</div>
-  <div class="bx"><b>3.</b> Al conversar, si dos opiniones son parecidas, se acercan un poco. Si son muy distintas, nadie cambia.</div>
-  <div class="bx"><b>4.</b> La influencia pesa mas entre gente de la misma region, edad similar y mismo nivel socioeconomico.</div>
-  <div class="bx"><b>5.</b> Cuando las opiniones dejan de cambiar, comparamos el resultado con el dato oficial CEP.</div>
-  <div class="bx"><b>Benchmark.</b> El boton Benchmark prueba combinaciones de tolerancia e influencia y mide cuanto se desvia cada una del resultado oficial de las preguntas. Asi se ve bajo que condiciones la simulacion reproduce la encuesta; sin esa calibracion describe mecanismos, no predice.</div>
-  <div class="ft">Modelo Deffuant-Weisbuch &bull; red Watts-Strogatz</div>
+  <div id="meth"></div>
 </div>
 <div class="toast" id="toast"></div>
 <div class="acard" id="acard"></div>
@@ -310,7 +366,7 @@ function draw(){
   else if(phase==='dropping')cap='Cada persona toma posicion frente a la pregunta, segun lo que respondio en la encuesta';
   else if(phase==='settling')cap='Las opiniones se estabilizaron en la ronda '+endStep+': hace varias rondas que nadie cambia de grupo';
   else if(phase==='done')cap='Resultado tras '+endStep+' rondas de conversacion, comparado con el resultado oficial de la encuesta';
-  else cap='Estan conversando: cuando dos opiniones se parecen, se acercan un poco; si son muy distintas, nadie cambia (ronda '+step+')';
+  else cap=(RULE==='repulsion'?'Posturas parecidas se acercan; las muy distintas se alejan':RULE==='medios'?'Las opiniones se acercan entre si y hacia la senal de medios':RULE==='umbral'?'Cada persona cambia cuando suficientes vecinos ya cambiaron':'Cuando dos opiniones se parecen se acercan; si son muy distintas, nadie cambia')+' (ronda '+step+')';
   cx.fillText(cap,w/2,mt+mh+34);
 
   // Labels clusters
@@ -326,6 +382,7 @@ function draw(){
     cx.fillStyle='#003f5c';cx.fillText(nL,cLx(),h*0.38+22);
     cx.fillStyle='#d62728';cx.fillText(nR,cRx(),h*0.38+22);
   }
+  if(RULE==='medios'){const mmx=cLx()+(Msig+1)/2*(cRx()-cLx());cx.strokeStyle='#ffc107';cx.setLineDash([5,4]);cx.lineWidth=2;cx.beginPath();cx.moveTo(mmx,h*0.30);cx.lineTo(mmx,h*0.72);cx.stroke();cx.setLineDash([]);cx.fillStyle='#d39e00';cx.font='600 11px Segoe UI';cx.textAlign='center';cx.fillText('senal de medios',mmx,h*0.28)}
 
   // Dots
   for(let i=0;i<N;i++){
@@ -394,25 +451,34 @@ function draw(){
   }
 }
 
-function stepOnce(o,s,eps,mu){
+function stepOnce(o,s,eps,mu,rule){
+  rule=rule||'abm';
   const r=rng_(s*997+3);
   const ord=[...Array(N).keys()];for(let i=N-1;i>0;i--){const j=Math.floor(r()*i);[ord[i],ord[j]]=[ord[j],ord[i]]}
   for(const i of ord){
-    const nb=NB[i];
-    if(!nb.length)continue;
-    const j=nb[Math.floor(r()*nb.length)];
-    if(Math.abs(o[i]-o[j])<eps){
-      let hm=0,n=0;if(D.a[i].r===D.a[j].r)hm++;n++;
-      hm+=1-Math.abs(D.a[i].gn-D.a[j].gn)/4;n++;
-      hm+=Math.max(0,1-Math.abs(D.a[i].a-D.a[j].a)/40);n++;hm/=n;
-      o[i]+=mu*D.a[i].o*hm*(o[j]-o[i])+(r()-0.5)*0.02;
-      o[i]=Math.max(-1,Math.min(1,o[i]))
+    const nb=NB[i];if(!nb.length)continue;
+    const op=D.a[i].o;
+    if(rule==='umbral'){
+      let sum=0;for(const k of nb)sum+=o[k];const mean=sum/nb.length;
+      let same=0;for(const k of nb)if((o[k]>0)===(mean>0))same++;same/=nb.length;
+      const theta=0.45+0.30*(1-op);
+      if(same>theta){o[i]+=mu*(Math.sign(mean||1)-o[i]);o[i]=Math.max(-1,Math.min(1,o[i]))}
+      continue;
     }
+    const j=nb[Math.floor(r()*nb.length)];
+    const d=Math.abs(o[i]-o[j]);
+    let hm=0,n=0;if(D.a[i].r===D.a[j].r)hm++;n++;
+    hm+=1-Math.abs(D.a[i].gn-D.a[j].gn)/4;n++;
+    hm+=Math.max(0,1-Math.abs(D.a[i].a-D.a[j].a)/40);n++;hm/=n;
+    if(d<eps){o[i]+=mu*op*hm*(o[j]-o[i])+(r()-0.5)*0.02}
+    else if(rule==='repulsion'&&d>0.9){o[i]+=mu*0.5*op*(o[i]-o[j])}
+    if(rule==='medios'){o[i]+=0.06*op*(Msig-o[i])}
+    o[i]=Math.max(-1,Math.min(1,o[i]))
   }
 }
 function simStep(){
-  const{eps,mu}=params();
-  stepOnce(ops,step,eps,mu);
+  const p=params();
+  stepOnce(ops,step,p.eps,p.mu,RULE);
   step++
 }
 
@@ -422,7 +488,7 @@ function runSim(qi,eps,mu){
   for(let i=0;i<N;i++){o[i]=Math.max(-1,Math.min(1,D.a[i].b+(r()-0.5)*0.6));if(Math.abs(o[i])<0.03)o[i]+=(r()-0.5)*0.2}
   let last=-1,st=0;
   for(let s=0;s<120;s++){
-    stepOnce(o,s,eps,mu);
+    stepOnce(o,s,eps,mu,RULE);
     let c=0;for(let i=0;i<N;i++)if(o[i]<0)c++;
     if(s>20&&Math.abs(c-last)<=2)st++;else st=0;
     last=c;
@@ -573,22 +639,38 @@ cv.addEventListener('click',e=>{
 
 // ===== Modo y vista 'modelo mundo' =====
 const AG={};for(const x of D.a)AG[x.i]=x;
-let MODE='abm';
+let MODE='abm',RULE='abm',Msig=0;
 function leanText(b){return b<=-0.5?'tiende a la izquierda':b<-0.1?'centro-izquierda':b<=0.1?'centro':b<0.5?'centro-derecha':'tiende a la derecha'}
 
+const SIMM=['abm','repulsion','medios','umbral'];
+const RULES={
+ abm:{name:'Modelo simple · influencia social',meth:'<div class="bx">Cada punto es <b>una persona real</b> de la CEP N.95 (n=1.217), en su region. Clic para conocerla.</div><div class="bx"><b>1.</b> Parte con una opinion segun lo que respondio en la encuesta.</div><div class="bx"><b>2.</b> Esta conectada con gente parecida y unos pocos contactos lejanos.</div><div class="bx"><b>3.</b> Si dos opiniones se parecen se acercan; si son muy distintas, nadie cambia.</div><div class="bx"><b>4.</b> La influencia pesa mas entre misma region, edad y NSE.</div><div class="bx"><b>5.</b> Al estabilizarse, comparamos con el dato oficial CEP (boton Benchmark).</div><div class="ft">Deffuant-Weisbuch &bull; solo atraccion</div>'},
+ repulsion:{name:'Polarizacion · atraccion y rechazo',meth:'<div class="bx">Como el modelo simple, pero se agrega <b>rechazo</b>.</div><div class="bx"><b>1.</b> Si dos opiniones se parecen, se acercan (igual que antes).</div><div class="bx"><b>2.</b> Si son <b>muy distintas</b>, en vez de ignorarse se <b>alejan aun mas</b>.</div><div class="bx"><b>3.</b> El resultado tipico no es consenso sino <b>polarizacion</b>: dos bloques separados.</div><div class="ft">Confianza acotada con repulsion</div>'},
+ medios:{name:'Medios y lideres',meth:'<div class="bx">Ademas de los vecinos, una <b>senal externa</b> (medios, lideres) tira de todas las opiniones.</div><div class="bx"><b>1.</b> Las personas se siguen influyendo entre si.</div><div class="bx"><b>2.</b> A la vez, todas son atraidas hacia la <b>senal de medios</b> (linea amarilla).</div><div class="bx"><b>3.</b> Mueve el control <b>Senal medios</b> para empujar la agenda a izquierda o derecha.</div><div class="ft">Influencia social + senal externa</div>'},
+ umbral:{name:'Contagio por umbral',meth:'<div class="bx">Modelo de <b>contagio</b> (Granovetter): la gente cambia por presion de la mayoria, no de a poco.</div><div class="bx"><b>1.</b> Cada persona mira a sus vecinos.</div><div class="bx"><b>2.</b> Adopta una postura cuando <b>suficientes vecinos</b> ya la tienen (su umbral).</div><div class="bx"><b>3.</b> Las personas mas abiertas tienen umbral mas bajo: cambian antes.</div><div class="bx"><b>4.</b> Produce <b>cascadas</b>: una postura se propaga de golpe.</div><div class="ft">Modelo de umbral</div>'},
+ world:{name:'Modelo mundo · agentes que conversan'},
+ voto:{name:'Proyeccion de voto'}
+};
+function applyMeth(){const e=document.getElementById('meth');if(e&&RULES[RULE])e.innerHTML=RULES[RULE].meth||''}
 function setMode(m){
   MODE=m;
   document.getElementById('picker').style.display='none';
-  const abm=m==='abm';
-  document.querySelector('.q').style.display=abm?'':'none';
-  document.querySelector('.prm').style.display=abm?'flex':'none';
-  document.querySelector('.btns').style.display=abm?'flex':'none';
-  cv.style.display=abm?'':'none';
-  document.getElementById('pL').style.display=abm?'':'none';
-  document.getElementById('pR').style.display=abm?'':'none';
-  document.getElementById('worldView').style.display=abm?'none':'flex';
-  document.getElementById('mlabel').textContent=abm?'Modelo simple · influencia social':'Modelo mundo · agentes que conversan';
-  if(abm){resize();draw()}else{wInit()}
+  const sim=SIMM.includes(m),world=m==='world',voto=m==='voto';
+  if(sim)RULE=m;
+  document.querySelector('.q').style.display=sim?'':'none';
+  document.querySelector('.prm').style.display=sim?'flex':'none';
+  document.querySelector('.btns').style.display=sim?'flex':'none';
+  cv.style.display=sim?'':'none';
+  document.getElementById('pL').style.display=sim?'':'none';
+  document.getElementById('pR').style.display=sim?'':'none';
+  document.getElementById('worldView').style.display=world?'flex':'none';
+  document.getElementById('votoView').style.display=voto?'flex':'none';
+  document.getElementById('bmk').style.display=(m==='abm'||m==='repulsion'||m==='medios')?'':'none';
+  document.getElementById('medwrap').style.display=(m==='medios')?'flex':'none';
+  document.getElementById('mlabel').textContent=(RULES[m]||{}).name||'';
+  if(sim){applyMeth();reset();resize();draw()}
+  else if(world)wInit();
+  else if(voto)votoInit()
 }
 function pick(m){setMode(m)}
 function openPicker(){document.getElementById('picker').style.display='flex';startPickerAnim()}
@@ -627,8 +709,44 @@ function drawWorldDemo(t){
   person(x,bx,py,lerpStr([214,39,40],[102,126,234],conv));
   x.fillStyle='#bbb';x.font='500 9px Segoe UI';x.textAlign='center';x.fillText('dos personas que conversan y se influyen',w/2,h-6)
 }
+
+// --- animaciones nuevas del selector ---
+const REPD=[];for(let i=0;i<24;i++)REPD.push({x0:(i*0.16+0.04)%1,side:i%2,row:(i/2)|0});
+function drawRepDemo(t){const cv=document.getElementById('demoRep');if(!cv||!cv.clientWidth)return;const r=fitC(cv),x=r[0],w=r[1],h=r[2];x.clearRect(0,0,w,h);
+  const cyc=(t%5)/5,p=ease(Math.min(1,cyc/0.8)),by=h*0.58;
+  x.strokeStyle='#e8e8ee';x.lineWidth=2;x.beginPath();x.moveTo(w*0.08,by);x.lineTo(w*0.92,by);x.stroke();
+  for(const d of REPD){const tx=d.side?w*0.9-(d.row%3)*6:w*0.1+(d.row%3)*6,ty=by-d.row*6.5-5;const sx=w*0.5+(d.side?8:-8),sy=h*0.24+d.x0*16;const cxp=sx+(tx-sx)*p,cyp=sy+(ty-sy)*p;x.beginPath();x.arc(cxp,cyp,3.6,0,7);x.fillStyle=d.side?lerpStr([198,198,208],[214,39,40],p):lerpStr([198,198,208],[0,63,92],p);x.fill()}
+  x.fillStyle='#bbb';x.font='500 9px Segoe UI';x.textAlign='center';x.fillText('se alejan a los extremos',w/2,h-6)}
+function drawMedDemo(t){const cv=document.getElementById('demoMed');if(!cv||!cv.clientWidth)return;const r=fitC(cv),x=r[0],w=r[1],h=r[2];x.clearRect(0,0,w,h);
+  const cyc=(t%5)/5,p=ease(Math.min(1,cyc/0.85)),by=h*0.6,mxp=w*0.72;
+  x.strokeStyle='#e8e8ee';x.lineWidth=2;x.beginPath();x.moveTo(w*0.1,by);x.lineTo(w*0.9,by);x.stroke();
+  x.strokeStyle='#ffc107';x.setLineDash([4,3]);x.lineWidth=2;x.beginPath();x.moveTo(mxp,h*0.22);x.lineTo(mxp,by);x.stroke();x.setLineDash([]);
+  x.fillStyle='#d39e00';x.font='600 9px Segoe UI';x.textAlign='center';x.fillText('medios',mxp,h*0.17);
+  for(const d of ABMD){const tx=mxp+((d.row%5)-2)*7,ty=by-((d.x0*5)|0)*6-5;const sx=w*(0.12+d.x0*0.55),sy=h*0.28+d.x0*14;const cxp=sx+(tx-sx)*p,cyp=sy+(ty-sy)*p;x.beginPath();x.arc(cxp,cyp,3.4,0,7);x.fillStyle=lerpStr([198,198,208],[102,126,234],p);x.fill()}
+  x.fillStyle='#bbb';x.font='500 9px Segoe UI';x.fillText('todos siguen la senal',w/2,h-6)}
+function drawUmbDemo(t){const cv=document.getElementById('demoUmb');if(!cv||!cv.clientWidth)return;const r=fitC(cv),x=r[0],w=r[1],h=r[2];x.clearRect(0,0,w,h);
+  const cyc=(t%4)/4,front=cyc*1.25*w,cols=10,rows=3;
+  for(let c=0;c<cols;c++)for(let rr=0;rr<rows;rr++){const px=w*0.1+c*(w*0.8/(cols-1)),py=h*0.3+rr*15;x.beginPath();x.arc(px,py,3.8,0,7);x.fillStyle=px<front?'#d62728':'#cfd2da';x.fill()}
+  x.fillStyle='#bbb';x.font='500 9px Segoe UI';x.textAlign='center';x.fillText('una postura se contagia',w/2,h-6)}
+function drawVotoDemo(t){const cv=document.getElementById('demoVoto');if(!cv||!cv.clientWidth)return;const r=fitC(cv),x=r[0],w=r[1],h=r[2];x.clearRect(0,0,w,h);
+  const cyc=Math.min(1,((t%4)/4)*1.3),bars=[['#d62728',0.8],['#003f5c',0.95],['#ffc107',0.5],['#9467bd',0.65],['#2ca02c',0.4]];
+  const n=bars.length,bw=w*0.74/n,x0=w*0.13;
+  for(let i=0;i<n;i++){const bh=(h*0.55)*bars[i][1]*ease(cyc),bx=x0+i*bw;x.fillStyle=bars[i][0];if(x.roundRect){x.beginPath();x.roundRect(bx,h*0.74-bh,bw*0.66,bh,3);x.fill()}else x.fillRect(bx,h*0.74-bh,bw*0.66,bh)}
+  x.fillStyle='#bbb';x.font='500 9px Segoe UI';x.textAlign='center';x.fillText('reparte el voto por candidato',w/2,h-6)}
+
+// --- proyeccion de voto ---
+const CAND=[{n:'Artes',p:-1.0,c:'#8b0000'},{n:'Jara',p:-0.7,c:'#d62728'},{n:'Enriquez-Ominami',p:-0.4,c:'#ff7f0e'},{n:'Mayne-Nicholls',p:-0.05,c:'#7f7f7f'},{n:'Parisi',p:0.1,c:'#ffc107'},{n:'Matthei',p:0.45,c:'#9467bd'},{n:'Kast',p:0.8,c:'#003f5c'},{n:'Kaiser',p:1.0,c:'#2ca02c'}];
+let VOTO=[];
+function votoInit(){const cnt=new Array(CAND.length).fill(0);for(let i=0;i<N;i++){const b=D.a[i].b;let bi=0,bd=9;for(let k=0;k<CAND.length;k++){const dd=Math.abs(b-CAND[k].p);if(dd<bd){bd=dd;bi=k}}cnt[bi]++}VOTO=CAND.map((c,k)=>({n:c.n,c:c.c,pct:cnt[k]/N*100})).sort((a,b)=>b.pct-a.pct);drawVoto()}
+function drawVoto(){const cvv=document.getElementById('vmap');if(!cvv||!cvv.clientWidth)return;const x=cvv.getContext('2d'),dpr=devicePixelRatio,W=cvv.clientWidth,H=cvv.clientHeight;cvv.width=W*dpr;cvv.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+  const n=VOTO.length,top=54,bh=Math.min(38,(H-top-30)/n),gap=bh*0.45,lblW=170,maxp=Math.max.apply(null,VOTO.map(v=>v.pct));
+  x.fillStyle='#333';x.font='700 16px Segoe UI';x.textAlign='left';x.fillText('Proyeccion de voto por proximidad ideologica',26,30);
+  x.font='600 13px Segoe UI';
+  VOTO.forEach((v,k)=>{const y=top+k*(bh+gap);x.fillStyle='#444';x.textAlign='right';x.fillText(v.n,lblW-12,y+bh/2+5);const bw=Math.max(2,(W-lblW-90)*(v.pct/maxp));x.fillStyle=v.c;if(x.roundRect){x.beginPath();x.roundRect(lblW,y,bw,bh,5);x.fill()}else x.fillRect(lblW,y,bw,bh);x.fillStyle='#333';x.textAlign='left';x.fillText(v.pct.toFixed(1)+'%',lblW+bw+10,y+bh/2+5)})}
+window.addEventListener('resize',()=>{if(MODE==='voto')drawVoto()});
+
 let pickerRaf=null;
-function pickerLoop(t){if(document.getElementById('picker').style.display==='none'){pickerRaf=null;return}drawAbmDemo(t/1000);drawWorldDemo(t/1000);pickerRaf=requestAnimationFrame(pickerLoop)}
+function pickerLoop(t){if(document.getElementById('picker').style.display==='none'){pickerRaf=null;return}const s=t/1000;drawAbmDemo(s);drawWorldDemo(s);drawRepDemo(s);drawMedDemo(s);drawUmbDemo(s);drawVotoDemo(s);pickerRaf=requestAnimationFrame(pickerLoop)}
 function startPickerAnim(){if(!pickerRaf)pickerRaf=requestAnimationFrame(pickerLoop)}
 
 let wIdx=0;
@@ -684,5 +802,6 @@ window.addEventListener('resize',()=>{if(MODE==='world'&&typeof CHATS!=='undefin
 document.getElementById('q').addEventListener('change',reset);
 document.getElementById('eps').addEventListener('input',e=>document.getElementById('ev').textContent=(+e.target.value/100).toFixed(2));
 document.getElementById('mu').addEventListener('input',e=>document.getElementById('mv').textContent=(+e.target.value/100).toFixed(2));
+document.getElementById('ms').addEventListener('input',e=>{Msig=+e.target.value/100;document.getElementById('msv').textContent=Msig.toFixed(2);if(MODE==='medios')draw()});
 init();draw();startPickerAnim()
 </script></body></html>

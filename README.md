@@ -8,7 +8,21 @@ Mundo simulado de agentes basado en la Encuesta CEP (Chile). Construye una pobla
 
 ## Demo
 
-El dashboard interactivo está en [`data/processed/simulacion_interactiva.html`](data/processed/simulacion_interactiva.html) — se abre directamente en el navegador, sin servidor. Al abrirlo, un selector ofrece **dos modelos**, cada uno con su descripción:
+El dashboard interactivo está en [`data/processed/simulacion_interactiva.html`](data/processed/simulacion_interactiva.html) — se abre directamente en el navegador, sin servidor. Al abrirlo, un selector ofrece **varios modelos** (cada tarjeta con una mini-animación y viñetas que explican qué hace), agrupados así:
+
+**Modelos de influencia social** (regla matemática, rápidos, sin costo) — comparten el mismo motor sobre el mapa de Chile, cambiando solo la regla de actualización:
+
+- **Simple (confianza acotada):** solo atracción entre opiniones parecidas → tiende al consenso. Incluye el benchmark contra los márgenes CEP.
+- **Polarización (atracción + rechazo):** las posturas muy distintas se alejan → emergen dos bloques.
+- **Medios y líderes:** además de los vecinos, una señal externa ajustable (control "Señal medios", marcador amarillo) atrae a toda la población.
+- **Contagio por umbral (Granovetter):** cada persona adopta la postura mayoritaria de su entorno solo al superar su umbral; produce cascadas.
+
+**Otros enfoques:**
+
+- **Modelo mundo (LLM):** agentes que conversan (ver abajo).
+- **Proyección de voto:** asigna a cada encuestado el candidato presidencial 2025 más cercano a su autoubicación izquierda-derecha y muestra el reparto. Mapeo heurístico, no un pronóstico.
+
+A continuación, el detalle de los dos principales:
 
 ### Modelo simple · Influencia social (ABM)
 
