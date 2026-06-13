@@ -737,53 +737,65 @@ function drawVotoDemo(t){const cv=document.getElementById('demoVoto');if(!cv||!c
 
 // --- proyeccion de voto ---
 const CAND=[{n:'Artes',p:-1.0,c:'#8b0000'},{n:'Jara',p:-0.7,c:'#d62728'},{n:'Enriquez-Ominami',p:-0.4,c:'#ff7f0e'},{n:'Mayne-Nicholls',p:-0.05,c:'#7f7f7f'},{n:'Parisi',p:0.1,c:'#ffc107'},{n:'Matthei',p:0.45,c:'#9467bd'},{n:'Kast',p:0.8,c:'#003f5c'},{n:'Kaiser',p:1.0,c:'#2ca02c'}];
-let VOTO=[],votoBalls=[],votoGeo=null,votoFrame=0,votoRaf=null;
-const VRATE=Math.max(5,N/150),VG=0.22,VGRID=7;
+let VOTO=[],votoGeo=null,votoFrame=0,votoRaf=null;
+const GROUPS=[
+ {n:'Izquierda',c:'#b03a3a',t:b=>b<=-0.5},
+ {n:'Centro-izquierda',c:'#cf8b3a',t:b=>b>-0.5&&b<=-0.15},
+ {n:'Centro',c:'#9aa0a6',t:b=>b>-0.15&&b<0.15},
+ {n:'Centro-derecha',c:'#5f7fb8',t:b=>b>=0.15&&b<0.5},
+ {n:'Derecha',c:'#2f6f8f',t:b=>b>=0.5}
+];
+function grpOf(b){for(let s=0;s<GROUPS.length;s++)if(GROUPS[s].t(b))return s;return 2}
 function votoInit(){
   const cvv=document.getElementById('vmap');if(!cvv||!cvv.clientWidth)return;
-  const W=cvv.clientWidth,H=cvv.clientHeight,padX=70,r=VGRID/2-0.4;
-  const fx=b=>padX+(b+1)/2*(W-2*padX);
-  const cnt=new Array(CAND.length).fill(0),assign=new Int16Array(N);
-  for(let i=0;i<N;i++){const b=D.a[i].b;let bi=0,bd=9;for(let k=0;k<CAND.length;k++){const dd=Math.abs(b-CAND[k].p);if(dd<bd){bd=dd;bi=k}}assign[i]=bi;cnt[bi]++}
-  const nC=CAND.length,colX=k=>padX+(W-2*padX)*(k+0.5)/nC;
-  const baseline=H-86,fny=8,sy=fny+22;
-  const pegTop=sy+24,pegBot=sy+(baseline-sy)*0.5,nRows=8,pegGapY=(pegBot-pegTop)/(nRows-1);
-  const maxCnt=Math.max.apply(null,cnt);
-  const perRow=Math.max(6,Math.ceil(maxCnt/((baseline-sy-10)/VGRID)));
-  VOTO=CAND.map((c,k)=>({n:c.n,c:c.c,cx:colX(k),cnt:cnt[k],pct:cnt[k]/N*100}));
-  const counter=new Array(nC).fill(0);
-  votoBalls=[];
-  for(let i=0;i<N;i++){const k=assign[i],c=counter[k]++,col=c%perRow,row=(c/perRow)|0;
-    votoBalls.push({tx:colX(k)-(perRow*VGRID)/2+col*VGRID+VGRID/2,ty:baseline-row*VGRID-VGRID/2,c:CAND[k].c,order:(i*48271)%N,ph:(i%7)/7*6.283})}
-  votoGeo={W,H,padX,baseline,fny,sy,r,pegTop,pegBot,nRows,pegGapY};
+  const W=cvv.clientWidth,H=cvv.clientHeight;
+  const cnt=new Array(CAND.length).fill(0),gtot=new Array(GROUPS.length).fill(0);
+  const flow=GROUPS.map(()=>new Array(CAND.length).fill(0));
+  for(let i=0;i<N;i++){const b=D.a[i].b;let bi=0,bd=9;for(let k=0;k<CAND.length;k++){const dd=Math.abs(b-CAND[k].p);if(dd<bd){bd=dd;bi=k}}cnt[bi]++;const s=grpOf(b);flow[s][bi]++;gtot[s]++}
+  VOTO=CAND.map((c,k)=>({n:c.n,c:c.c,cnt:cnt[k],pct:cnt[k]/N*100}));
+  votoGeo={W,H,flow,gtot,cnt};
   votoFrame=0;if(votoRaf)cancelAnimationFrame(votoRaf);votoRaf=requestAnimationFrame(votoLoop)
 }
-function votoLoop(){votoFrame++;drawVoto();if(votoFrame>N/VRATE+95){votoRaf=null;return}votoRaf=requestAnimationFrame(votoLoop)}
+function votoLoop(){votoFrame++;drawVoto();if(votoFrame>70){votoRaf=null;return}votoRaf=requestAnimationFrame(votoLoop)}
 function drawVoto(){
   const cvv=document.getElementById('vmap');if(!cvv||!votoGeo||!cvv.clientWidth)return;
-  const x=cvv.getContext('2d'),dpr=devicePixelRatio,g=votoGeo,W=g.W,H=g.H,bl=g.baseline,fnx=W/2,sy=g.sy;
+  const x=cvv.getContext('2d'),dpr=devicePixelRatio,g=votoGeo,W=g.W,H=g.H;
   cvv.width=W*dpr;cvv.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
-  x.fillStyle='#003f5c';x.font='600 11px Segoe UI';x.textAlign='left';x.fillText('Izquierda',g.padX,30);
-  x.fillStyle='#d62728';x.textAlign='right';x.fillText('Derecha',W-g.padX,30);
-  x.strokeStyle='#cfd2da';x.lineWidth=2;x.beginPath();x.moveTo(fnx-26,g.fny);x.lineTo(fnx-7,g.fny+18);x.lineTo(fnx-7,sy);x.moveTo(fnx+26,g.fny);x.lineTo(fnx+7,g.fny+18);x.lineTo(fnx+7,sy);x.stroke();
-  x.strokeStyle='#eee';x.lineWidth=1;x.beginPath();x.moveTo(g.padX,bl+1);x.lineTo(W-g.padX,bl+1);x.stroke();
-  // palitos (pegs) de la maquina de Galton
-  x.fillStyle='#d3d7de';
-  for(let rw=0;rw<g.nRows;rw++){const py=g.pegTop+rw*g.pegGapY,np=rw+3,wd=(np-1)*26;
-    for(let c=0;c<np;c++){x.beginPath();x.arc(fnx-wd/2+c*26,py,2.2,0,7);x.fill()}}
-  for(const b of votoBalls){
-    const f=votoFrame-b.order/VRATE;if(f<=0)continue;
-    let y=sy+0.5*VG*f*f,p;
-    if(y>=b.ty){y=b.ty;p=1}else{p=(y-sy)/(b.ty-sy)}
-    const t=(y-g.pegTop)/g.pegGapY/1.5+b.ph,tri=2*Math.abs(2*(t-Math.floor(t+0.5)))-1;
-    const fin=Math.max(0,Math.min(1,(y-g.pegTop)/g.pegGapY)),fout=Math.max(0,Math.min(1,(g.pegBot-y)/(2*g.pegGapY)));
-    const wig=tri*18*fin*fout;
-    x.beginPath();x.arc(fnx+(b.tx-fnx)*Math.pow(p,2.2)+wig,y,g.r,0,7);x.fillStyle=b.c;x.fill()
+  const prog=Math.min(1,votoFrame/50);
+  const leftM=170,rightM=180,nw=18,gap=10,top=64,bot=H-24,availH=bot-top;
+  const Lx=leftM,Rx=W-rightM,x0=Lx+nw,x1=Rx,cx=(x0+x1)/2;
+  const scale=(availH-(CAND.length-1)*gap)/N;
+  const Ly=[],Lh=[];let yy=top;
+  for(let s=0;s<GROUPS.length;s++){const h=g.gtot[s]*scale;Ly.push(yy);Lh.push(h);yy+=h+gap}
+  const Ry=[],Rh=[];yy=top;
+  for(let k=0;k<CAND.length;k++){const h=g.cnt[k]*scale;Ry.push(yy);Rh.push(h);yy+=h+gap}
+  // titulos
+  x.fillStyle='#333';x.font='700 13px Segoe UI';x.textAlign='left';x.fillText('Autoubicacion ideologica',24,34);
+  x.textAlign='right';x.fillText('Candidato presidencial 2025',W-24,34);
+  // cintas (con revelado izquierda->derecha)
+  const Lcur=Ly.slice(),Rcur=Ry.slice();
+  x.save();x.beginPath();x.rect(0,0,x0+prog*(x1-x0)+1,H);x.clip();
+  for(let s=0;s<GROUPS.length;s++)for(let k=0;k<CAND.length;k++){
+    const f=g.flow[s][k];if(!f)continue;
+    const h=f*scale,s0=Lcur[s],s1=s0+h,t0=Rcur[k],t1=t0+h;Lcur[s]=s1;Rcur[k]=t1;
+    x.beginPath();x.moveTo(x0,s0);x.bezierCurveTo(cx,s0,cx,t0,x1,t0);
+    x.lineTo(x1,t1);x.bezierCurveTo(cx,t1,cx,s1,x0,s1);x.closePath();
+    x.fillStyle=CAND[k].c;x.globalAlpha=0.42;x.fill()
   }
-  for(const v of VOTO){const cxp=v.cx;
-    x.save();x.translate(cxp,bl+16);x.rotate(-0.32);x.textAlign='right';x.fillStyle='#555';x.font='600 11px Segoe UI';x.fillText(v.n,0,0);x.restore();
-    x.fillStyle=v.c;x.font='700 13px Segoe UI';x.textAlign='center';x.fillText(Math.round(v.pct)+'%',cxp,bl+58)}
-  x.fillStyle='#aaa';x.font='500 11px Segoe UI';x.textAlign='center';x.fillText('Cada voto cae del embudo al candidato mas cercano por ideologia',W/2,H-6)
+  x.restore();x.globalAlpha=1;
+  // nodos izquierda
+  for(let s=0;s<GROUPS.length;s++){
+    x.fillStyle=GROUPS[s].c;x.fillRect(Lx,Ly[s],nw,Math.max(1,Lh[s]));
+    x.fillStyle='#333';x.font='600 12px Segoe UI';x.textAlign='right';x.fillText(GROUPS[s].n,Lx-10,Ly[s]+Lh[s]/2+1);
+    x.fillStyle='#999';x.font='600 11px Segoe UI';x.fillText(Math.round(g.gtot[s]/N*100)+'%',Lx-10,Ly[s]+Lh[s]/2+15)
+  }
+  // nodos derecha
+  for(let k=0;k<CAND.length;k++){
+    x.fillStyle=CAND[k].c;x.fillRect(Rx,Ry[k],nw,Math.max(1,Rh[k]));
+    x.fillStyle='#333';x.font='600 12px Segoe UI';x.textAlign='left';x.fillText(CAND[k].n,Rx+nw+10,Ry[k]+Rh[k]/2+1);
+    x.fillStyle=CAND[k].c;x.font='700 11px Segoe UI';x.fillText(Math.round(g.cnt[k]/N*100)+'%',Rx+nw+10,Ry[k]+Rh[k]/2+15)
+  }
+  x.fillStyle='#aaa';x.font='500 11px Segoe UI';x.textAlign='center';x.fillText('Flujo de cada segmento ideologico al candidato mas cercano (grosor = personas)',W/2,H-6)
 }
 window.addEventListener('resize',()=>{if(MODE==='voto')votoInit()});
 
