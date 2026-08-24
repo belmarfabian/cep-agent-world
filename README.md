@@ -8,11 +8,11 @@ Mundo simulado de agentes basado en la Encuesta CEP (Chile). Construye una pobla
 
 ## Demo
 
-El dashboard interactivo está en [`data/processed/simulacion_interactiva.html`](data/processed/simulacion_interactiva.html) — se abre directamente en el navegador, sin servidor. Al abrirlo, un selector ofrece **varios modelos** (cada tarjeta con una mini-animación y viñetas que explican qué hace), agrupados así:
+El dashboard vive en **https://belmarfabian.github.io/cep-agent-world/** (GitHub Pages) y también se puede abrir localmente desde [`data/processed/simulacion_interactiva.html`](data/processed/simulacion_interactiva.html), sin servidor. Al abrirlo, un selector ofrece **varios modelos** (cada tarjeta con una mini-animación y viñetas que explican qué hace), agrupados así:
 
 **Modelos de influencia social** (regla matemática, rápidos, sin costo) — comparten el mismo motor sobre el mapa de Chile, cambiando solo la regla de actualización:
 
-- **Simple (confianza acotada):** solo atracción entre opiniones parecidas → tiende al consenso. Incluye el benchmark contra los márgenes CEP.
+- **Simple (confianza acotada):** solo atracción entre opiniones parecidas → tiende al consenso. Incluye el benchmark contra los márgenes CEP, un botón **Red** que dibuja los lazos de conversación sobre el mapa, y un **medidor de polarización** (desviación estándar de las opiniones) que se grafica ronda a ronda.
 - **Polarización (atracción + rechazo):** las posturas muy distintas se alejan → emergen dos bloques.
 - **Medios y líderes:** además de los vecinos, una señal externa ajustable (control "Señal medios", marcador amarillo) atrae a toda la población.
 - **Contagio por umbral (Granovetter):** cada persona adopta la postura mayoritaria de su entorno solo al superar su umbral; produce cascadas.

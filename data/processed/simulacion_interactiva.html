@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8">
 <title>C22 Agent World</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#128499;</text></svg>">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#fff;font-family:'Segoe UI',system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;color:#333}
@@ -26,6 +27,8 @@ body{background:#fff;font-family:'Segoe UI',system-ui,sans-serif;height:100vh;di
 .prm{display:flex;gap:6px;align-items:center;font-size:11px;color:#888;white-space:nowrap}
 .prm b{color:#333;font-size:11px}
 .prm input{width:70px;accent-color:#003f5c}
+#net.on{background:#003f5c;color:#fff}
+.pick-foot{margin-top:26px;font-size:11px;color:#bbb;text-align:center;line-height:1.7}
 canvas{flex:1;background:#fff}
 
 /* Panels */
@@ -184,6 +187,7 @@ canvas{flex:1;background:#fff}
       <button>Ver proyeccion</button>
     </div>
   </div>
+  <div class="pick-foot">C22 &middot; Centro de Estudios Publicos &mdash; Encuesta CEP N.95 (sept-oct 2025, n=1.217)<br>Codigo abierto: github.com/belmarfabian/cep-agent-world</div>
 </div>
 <div class="ribbon"><div class="r1"></div><div class="r2"></div><div class="r3"></div><div class="r4"></div><div class="r5"></div></div>
 <div class="hdr">
@@ -206,6 +210,7 @@ canvas{flex:1;background:#fff}
   <div class="btns">
     <button class="go" id="btn" onclick="toggle()">Iniciar</button>
     <button class="rst" onclick="reset()">Reset</button>
+    <button class="rst" id="net" onclick="toggleNet()">Red</button>
     <button class="rst" id="bmk" onclick="benchmark()">Benchmark</button>
     <button class="rst" id="chg" onclick="openPicker()">Cambiar modelo</button>
   </div>
@@ -261,7 +266,8 @@ resize();window.onresize=()=>{resize();draw()};
 
 let ops=new Float64Array(N),px_=new Float64Array(N),py_=new Float64Array(N);
 let phase='idle',step=0,df_=0,playing=false,qIdx=0,showCmp=false;
-let landed=new Uint8Array(N),dOrder=[];
+let landed=new Uint8Array(N),dOrder=[],dIdx=new Int32Array(N);
+let showNet=false,polHist=[];
 let calm=0,settle=0,endStep=0,lastNL=-1,BMK=null,showBmk=false,bmkBusy=false;
 
 // Lista de adyacencia (acelera la simulacion)
@@ -306,8 +312,9 @@ function init(){
   dOrder=[...Array(N).keys()];
   const r2=rng_(77+qIdx);
   for(let i=N-1;i>0;i--){const j=Math.floor(r2()*i);[dOrder[i],dOrder[j]]=[dOrder[j],dOrder[i]]}
+  for(let p=0;p<N;p++)dIdx[dOrder[p]]=p;
   step=0;df_=0;phase='idle';playing=false;landed=new Uint8Array(N);showCmp=false;
-  calm=0;settle=0;endStep=0;lastNL=-1;showBmk=false;
+  calm=0;settle=0;endStep=0;lastNL=-1;showBmk=false;polHist=[];
   document.getElementById('btn').textContent='Iniciar';
   draw()
 }
@@ -369,6 +376,23 @@ function draw(){
   else cap=(RULE==='repulsion'?'Posturas parecidas se acercan; las muy distintas se alejan':RULE==='medios'?'Las opiniones se acercan entre si y hacia la senal de medios':RULE==='umbral'?'Cada persona cambia cuando suficientes vecinos ya cambiaron':'Cuando dos opiniones se parecen se acercan; si son muy distintas, nadie cambia')+' (ronda '+step+')';
   cx.fillText(cap,w/2,mt+mh+34);
 
+  // Medidor de polarizacion (desviacion estandar de las opiniones, ronda a ronda)
+  if(polHist.length>1&&w>1100){
+    const sw=190,sh=40,sx0=w-sw-64,sy0=mt+mh+12;
+    cx.fillStyle='#fafafa';cx.strokeStyle='#eee';cx.lineWidth=1;
+    cx.beginPath();if(cx.roundRect)cx.roundRect(sx0-10,sy0-8,sw+20,sh+34,8);else cx.rect(sx0-10,sy0-8,sw+20,sh+34);cx.fill();cx.stroke();
+    cx.strokeStyle='#667eea';cx.lineWidth=1.6;cx.beginPath();
+    for(let i=0;i<polHist.length;i++){
+      const px=sx0+(polHist.length>1?i/(polHist.length-1):0)*sw;
+      const py=sy0+sh-Math.min(1,polHist[i]/0.8)*sh;
+      i?cx.lineTo(px,py):cx.moveTo(px,py)
+    }
+    cx.stroke();
+    const plast=polHist[polHist.length-1],pprev=polHist.length>5?polHist[polHist.length-6]:polHist[0];
+    cx.fillStyle='#666';cx.font='600 10px Segoe UI';cx.textAlign='left';
+    cx.fillText('Polarizacion (desv. est.): '+plast.toFixed(2)+(plast>pprev+0.005?' \u2197 al alza':plast<pprev-0.005?' \u2198 a la baja':' \u2192 estable'),sx0-4,sy0+sh+16);
+  }
+
   // Labels clusters
   const lb=labs[qIdx];
   cx.font='600 14px Segoe UI';cx.textAlign='center';
@@ -384,12 +408,20 @@ function draw(){
   }
   if(RULE==='medios'){const mmx=cLx()+(Msig+1)/2*(cRx()-cLx());cx.strokeStyle='#ffc107';cx.setLineDash([5,4]);cx.lineWidth=2;cx.beginPath();cx.moveTo(mmx,h*0.30);cx.lineTo(mmx,h*0.72);cx.stroke();cx.setLineDash([]);cx.fillStyle='#d39e00';cx.font='600 11px Segoe UI';cx.textAlign='center';cx.fillText('senal de medios',mmx,h*0.28)}
 
+  // Red social (lazos de conversacion)
+  if(showNet){
+    cx.strokeStyle='rgba(0,63,92,0.05)';cx.lineWidth=0.6;
+    cx.beginPath();
+    for(const e2 of D.e){cx.moveTo(px_[e2[0]],py_[e2[0]]);cx.lineTo(px_[e2[1]],py_[e2[1]])}
+    cx.stroke();
+  }
+
   // Dots
   for(let i=0;i<N;i++){
     cx.beginPath();cx.arc(px_[i],py_[i],R,0,Math.PI*2);
     if(landed[i]===0) cx.fillStyle='#bbb';
     else if(landed[i]===1){
-      const dp=Math.min(1,(df_-Math.floor(dOrder.indexOf(i)/20))/25);
+      const dp=Math.min(1,(df_-Math.floor(dIdx[i]/20))/25);
       cx.fillStyle=dp>0.5?col(ops[i]):'#bbb'
     } else cx.fillStyle=col(ops[i]);
     cx.fill()
@@ -419,6 +451,8 @@ function draw(){
     cx.font='600 10px Segoe UI';
     cx.fillStyle='#003f5c';cx.textAlign='left';cx.fillText(cL+'%',bx+3,by2+bh+12);
     cx.fillStyle='#d62728';cx.textAlign='right';cx.fillText(cR+'%',bx+bw-3,by2+bh+12);
+    cx.fillStyle='#999';cx.font='600 11px Segoe UI';cx.textAlign='center';
+    cx.fillText(cL>0&&cL<100?('brecha simulacion vs CEP: '+Math.abs(pL-cL)+' pts'):'esta pregunta no tiene margen oficial comparable',bx+bw/2,by2+bh+30);
   }
 
   // Panel de benchmark: mapa de error simulacion vs encuesta
@@ -502,27 +536,32 @@ function runSim(qi,eps,mu){
 function benchmark(){
   if(bmkBusy)return;
   if(showBmk){showBmk=false;draw();return}
-  bmkBusy=true;document.getElementById('bmk').textContent='Calculando...';
-  toast('Probando combinaciones de tolerancia e influencia contra la encuesta...');
-  setTimeout(()=>{
-    const EPS=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8],MU=[0.1,0.2,0.3,0.4,0.5,0.6];
-    const qs=[];for(let i=0;i<labs.length;i++)if(labs[i][2]>0&&labs[i][2]<100)qs.push(i);
-    BMK={eps:EPS,mu:MU,err:[],best:null,nq:qs.length};
-    let bestE=1e9;
-    for(let mi=0;mi<MU.length;mi++){
-      const row=[];
-      for(let ei=0;ei<EPS.length;ei++){
-        let e=0;
-        for(const qi of qs)e+=Math.abs(runSim(qi,EPS[ei],MU[mi])-labs[qi][2]);
-        e/=qs.length;row.push(e);
-        if(e<bestE){bestE=e;BMK.best=[ei,mi]}
-      }
-      BMK.err.push(row)
+  bmkBusy=true;
+  const btn=document.getElementById('bmk');
+  const EPS=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8],MU=[0.1,0.2,0.3,0.4,0.5,0.6];
+  const qs=[];for(let i=0;i<labs.length;i++)if(labs[i][2]>0&&labs[i][2]<100)qs.push(i);
+  BMK={eps:EPS,mu:MU,err:[],best:null,nq:qs.length};
+  let bestE=1e9,mi=0;
+  toast('Probando '+(EPS.length*MU.length)+' combinaciones contra la encuesta...');
+  function rowStep(){
+    const row=[];
+    for(let ei=0;ei<EPS.length;ei++){
+      let e=0;
+      for(const qi of qs)e+=Math.abs(runSim(qi,EPS[ei],MU[mi])-labs[qi][2]);
+      e/=qs.length;row.push(e);
+      if(e<bestE){bestE=e;BMK.best=[ei,mi]}
     }
-    bmkBusy=false;showBmk=true;document.getElementById('bmk').textContent='Benchmark';draw();
-    const[bei,bmi]=BMK.best;
-    toast('Mejor ajuste: tolerancia '+EPS[bei].toFixed(2)+' e influencia '+MU[bmi].toFixed(2)+', error medio '+bestE.toFixed(1)+' pts')
-  },50)
+    BMK.err.push(row);mi++;
+    btn.textContent='Calculando '+mi+'/'+MU.length+'...';
+    if(mi<MU.length){setTimeout(rowStep,15)}
+    else{
+      bmkBusy=false;showBmk=true;btn.textContent='Benchmark';draw();
+      const bb=BMK.best;
+      toast('Mejor ajuste: tolerancia '+EPS[bb[0]].toFixed(2)+' e influencia '+MU[bb[1]].toFixed(2)+', error medio '+bestE.toFixed(1)+' pts')
+    }
+  }
+  btn.textContent='Calculando 0/'+MU.length+'...';
+  setTimeout(rowStep,15)
 }
 
 function bmkGeo(){
@@ -543,7 +582,7 @@ function animate(t){
   if(phase==='dropping'){
     let any=false;
     for(let i=0;i<N;i++){
-      const si=Math.floor(dOrder.indexOf(i)/20);
+      const si=Math.floor(dIdx[i]/20);
       const el=df_-si;
       if(el<0){any=true;continue}
       if(landed[i]===0)landed[i]=1;
@@ -568,6 +607,9 @@ function animate(t){
     for(let i=0;i<N;i++){px_[i]+=(nt[i].x-px_[i])*0.15;py_[i]+=(nt[i].y-py_[i])*0.15}
     // Convergencia: si nadie cambia de grupo por varias rondas, terminar suave
     let nL=0;for(let i=0;i<N;i++)if(ops[i]<0)nL++;
+    let pm=0;for(let i=0;i<N;i++)pm+=ops[i];pm/=N;
+    let sd=0;for(let i=0;i<N;i++)sd+=(ops[i]-pm)*(ops[i]-pm);
+    polHist.push(Math.sqrt(sd/N));
     if(step>20&&Math.abs(nL-lastNL)<=2)calm++;else calm=0;
     lastNL=nL;
     if(calm>=15||step>=120){
@@ -594,6 +636,7 @@ function toggle(){
   if(playing)requestAnimationFrame(animate)
 }
 function reset(){playing=false;landed=new Uint8Array(N);init()}
+function toggleNet(){showNet=!showNet;document.getElementById('net').classList.toggle('on',showNet);toast(showNet?'Cada linea une a dos personas que pueden conversar':'Red oculta');draw()}
 
 // Stats
 const S=D.s;
@@ -797,7 +840,7 @@ function drawVoto(){
   // notas
   x.fillStyle='#888';x.font='500 11px Segoe UI';x.textAlign='center';
   x.fillText('Etapa 1: posicion izq-der = autoubicacion politica CEP en la escala 1 (izquierda) a 10 (derecha); el 5 o sin identificacion cae al centro',W/2,H-19);
-  x.fillStyle='#aaa';x.fillText('La cercania ideologica sobreestima al centro (Mayne-Nicholls 56% vs 1,3% real); el resultado real se reparte muy distinto',W/2,H-5)
+  x.fillStyle='#aaa';x.fillText('La cercania sobreestima al centro (Mayne-Nicholls 56% vs 1,3% real) \u00b7 muestra CEP n=1.217 \u00b7 resultado oficial Servel, nov-2025',W/2,H-5)
 }
 window.addEventListener('resize',()=>{if(MODE==='voto')votoInit()});
 
